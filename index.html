@@ -1,0 +1,781 @@
+
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Vigor+</title>
+    <link rel="stylesheet" href="vigor.css ">
+
+<script>
+// ********************************************************************* //
+// *                                                                   * //
+// *       "Vigor+" - Juin 2018                                        * //
+// *                                                                   * //
+// ********************************************************************* //
+// *                                                                   * //
+// *   Dominique Hourdequin - Juin 2018                                * //
+// *   Projet N°2 - Type "Back-end"                                    * //
+// *                                                                   * //
+// *   Formation "Développeur Full Stack Javascript"                   * //
+// *   Classe : "DIWJS08" - Printemps 2018                             * //
+// *   IFOCOP - Paris XI                                               * //
+// *                                                                   * //
+// *   Contact à l'IFOCOP qui transmettra mes coordonnées sur demande  * //
+// *   Responsable de formation                                        * //
+// *   Madame Fabienne Thiry                                           * //
+// *   mail : fthiry@ifocop.fr                                         * //
+// *   Tel : 01-40-21-83-78                                            * //
+// *                                                                   * //
+// ********************************************************************* //
+</script>
+
+<style>
+/* ------------------------------------------------------------ */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  */
+/*                                                              */
+/*                    Polyfill pour Chrome                      */
+/*                                                              */
+/*   IMPORTANT !!!   Note de D. Hourdequin                      */
+/*                                                              */
+/*   Depuis la version de Chrome de janvier 2018, celui-ci      */
+/*   n'autorise plus l'acces au CSSOM pour des raisons de       */
+/*   violation du CORS (à cause de modules d'extensions qui     */
+/*   faisaient de l'injection CSS)                              */
+/*   Seul Chrome à réagi, et il semble que la modification ait  */
+/*   entrainée le bug que nous rencontrons ici                  */ 
+/*                                                              */
+/*   Voila pourquoi J AI ETE OBLIGE DE METTRE LE FICHIER CSS    */
+/*   DANS LE PROGRAMME PRINCIPAL (ET CA RESOUD EFFECTIVEMENT    */
+/*   LE PROBLEME), MAIS JE N AIME PAS CETTE SOLUTION            */
+/*                                                              */
+/*  Uncaught DOMException: Failed to read the 'rules' property  */
+/*  from 'CSSStyleSheet': Cannot access rules                   */
+/*                                                              */
+/* "Cannot access cssRules from local css file in Chrome 64"    */
+/*                                                              */
+/*  SOLUTIONS:                                                  */ 
+/*  1. works when files are online/localhost                    */
+/*  2. works with other browsers (i.e. Internet Explorer,       */   
+/*  Microsoft Edge, Firefox)                                    */
+/*  3. chrome --allow-file-access-from-files                    */                                        
+/*                                                              */
+/*  As of Chrome 64, new CORS rules are enforced for stylesheets*/
+/*. You'll need to use a local development server to do local   */ 
+/* testing of functionality that depends on the CSS Object Model*/
+/* For details :                                                */
+/* https://stackoverflow.com/questions/48753691/cannot-access   */
+/* -cssrules-from-local-css-file-in-chrome/49160760#49160760    */
+/*                                                              */
+/* ------------------------------------------------------------ */
+
+/* ------------------------------------------------------------ */
+/*                           Animations                         */
+/* ------------------------------------------------------------ */
+
+@font-face {
+    font-family: 'looneytunes_tilt_bttilt';
+    src: url('fonts/looney_tunes_tilt_bt-webfont.eot');
+    src: url('fonts/looney_tunes_tilt_bt-webfont.eot?#iefix') format('embedded-opentype'),
+        url('fonts/looney_tunes_tilt_bt-webfont.woff2') format('woff2'),
+        url('fonts/looney_tunes_tilt_bt-webfont.woff') format('woff'),
+        url('fonts/looney_tunes_tilt_bt-webfont.ttf') format('truetype'),
+        url('fonts/looney_tunes_tilt_bt-webfont.svg#looneytunes_tilt_bttilt') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+        font-family: 'thats_font_folksitalic';
+        src: url('fonts/that_s_font_folks-webfont.eot');
+        src: url('fonts/that_s_font_folks-webfont.eot?#iefix') format('embedded-opentype'),
+            url('fonts/that_s_font_folks-webfont.woff2') format('woff2'),
+            url('fonts/that_s_font_folks-webfont.woff') format('woff'),
+            url('fonts/that_s_font_folks-webfont.ttf') format('truetype'),
+            url('fonts/that_s_font_folks-webfont.svg#thats_font_folksitalic') format('svg');
+        font-weight: normal;
+        font-style: normal;   
+}
+
+
+@keyframes scrollBkgndSol {
+    from {background-position-x: 0px;}
+    to {background-position-x: -1920px;} 
+}
+
+@keyframes scrollBkgndNuages {
+    from {background-position-x: 0px;}
+    to {background-position-x: -1920px;} 
+}
+
+@keyframes flottementModule {
+    0% {top: 400px;}
+    50% {top: 500px;} 
+}
+
+@keyframes spinVilCoyote {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(720deg); }
+}
+
+@keyframes ejectVilCoyoteG {
+    from { transform: translate(0px); }
+    to { transform: translate(-4000px, -4000px); }
+}
+
+@keyframes ejectVilCoyoteD {
+    from { transform: translate(0px); }
+    to { transform: translate(4000px, -4000px); }
+}
+
+@keyframes animeImage {
+    0% { transform: scale(1.8); }
+    100% { transform: scale(1.4); }
+}
+
+@keyframes rangeCompetence {
+    from {transform: translate(0px, 0px); } 
+    to {transform: translate(600px, 600px);}
+}
+
+/* ------------------------------------------------------------ */
+/*                           Général                            */
+/* ------------------------------------------------------------ */
+* {
+    /* Pour empecher la sélection des objets statiques à l'écran  */
+    -ms-user-select: none;
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    /* background-color: royalblue; */
+    /* background-color: red; */
+    background-color: #d9c97c;
+    overflow: hidden;                   /* Pour empecher l'affichage des Scroll-Bar */    
+}
+
+/* ------------------------------------------------------------ */
+/*                           Arrières-plans                     */
+/* ------------------------------------------------------------ */
+
+.clFondEcranSol{
+    position: absolute;
+    background-image: url("images/appaloosa_desert_Background-sol-soir.png"); 
+    z-index: 4;
+    -o-animation: 6s linear infinite scrollBkgndSol;
+    -moz-animation: 6s linear infinite scrollBkgndSol;
+    -webkit-animation: 6s linear infinite scrollBkgndSol;
+    -ms-animation:  6s linear infinite scrollBkgndSol;
+    animation:  6s linear infinite scrollBkgndSol;
+}
+
+.clFondEcranNuages{
+    position: absolute;
+    background-image: url("images/appaloosa_desert_Background-nuages.png");
+    opacity: 0.8;
+    z-index: 6;
+    -o-animation: 3s linear infinite scrollBkgndNuages;
+    -moz-animation: 3s linear infinite scrollBkgndNuages;
+    -webkit-animation: 3s linear infinite scrollBkgndNuages;
+    -ms-animation:  4.5s linear infinite scrollBkgndNuages;
+    animation:  4.5s linear infinite scrollBkgndNuages;
+}
+
+/* ------------------------------------------------------------ */
+/*                          Vil-Coyote                          */
+/* ------------------------------------------------------------ */
+
+.clBoiteVilCoyote{
+    position: absolute;
+    top: 400px;
+    left: 50%;
+    width: 300px;
+    height: 196px; 
+    z-index: 5;
+    -o-animation: 4s linear infinite flottementModule alternate;
+    -moz-animation: 4s linear infinite flottementModule alternate;
+    -webkit-animation: 4s linear infinite flottementModule alternate; 
+    -ms-animation: 4s linear infinite flottementModule alternate; 
+    animation: 4s linear infinite flottementModule alternate; 
+    /* border: solid black 1px;      */
+}
+
+.clMasqueVilCoyote{
+    position: relative;
+    overflow: hidden;
+    margin: auto;
+    width: 191px;
+    height: 196px; 
+    /* border: solid red 1px;  */
+}
+
+.clSpriteVilCoyote {
+    position: absolute;
+    /* border: blue solid 3px; */
+}
+
+/* ------------------------------------------------------------ */
+/*                           Energy Ball                        */
+/* ------------------------------------------------------------ */
+
+.clBoiteEnergyBall{
+    position: absolute;
+    width: 45px;
+    height: 45px; 
+    display : none;
+    z-index: 5;
+    /* border: solid black 1px;     */
+}
+
+.clMasqueEnergyBall{
+    position: relative;
+    overflow: hidden;
+    margin: auto;
+    /* border: solid red 1px; */
+}
+
+.clSpriteEnergyBall {
+    position: absolute;
+    /* border: blue solid 3px; */
+}
+
+/* ------------------------------------------------------------ */
+/*                             Vautour                          */
+/* ------------------------------------------------------------ */
+
+.clBboiteVautour{
+    position: absolute;
+    width: 260px;
+    height: 200px; 
+    top: 400px;
+    left: 1400px;
+    z-index: 5;
+    /* border: solid black 1px;     */
+}
+
+.clMasqueVautour{
+    position: relative;
+    overflow: hidden;
+    top: 50%; 
+    transform: translateY(-50%);
+    margin: auto;
+    /* border: solid red 1px; */
+}
+
+.clSpriteVautour {
+    position: relative;
+    /* border: blue solid 3px; */
+}
+
+/* ------------------------------------------------------------ */
+/*                 Panneau de contrôle                          */
+/* ------------------------------------------------------------ */
+
+.clBoiteControlPanel{
+    position: absolute;
+    bottom: 0px;
+    left:0px;
+    z-index: 5;
+    /* border: solid black 1px;   */
+}
+
+.clImgControlPanel{
+    width: 100%;
+    height: 100%;
+}
+
+/* ------------------------------------------------------------ */
+/*                            Targets                           */
+/* ------------------------------------------------------------ */
+.clBoiteBipBip{
+    position: absolute;
+    width: 3.13%;                
+    height: 3.13%;  
+    z-index: 7;
+    overflow: hidden;
+    /* border: solid black 1px;     */
+}
+
+/* ------------------------------------------------------------ */
+/*                         Chiffres du score                    */
+/* ------------------------------------------------------------ */
+.clBoiteChiffre{
+    position: absolute;
+    width: 2.55%;                
+    height: 7.46%;  
+    top : 89%;
+    left : 83.33%;
+    z-index: 7;
+    /* border: solid black 1px;     */
+}
+
+.clMasqueChiffre{
+    position: absolute;
+    overflow: hidden;
+    margin: auto;
+   /* border: solid red 1px; */
+}
+
+.clSpriteChiffre{
+    position: absolute;
+}
+
+/* ------------------------------------------------------------ */
+/*                         Icones des CV                        */
+/* ------------------------------------------------------------ */
+.clCVcourtBtn{
+    position: absolute;
+    top: 90%;
+    left: 64.84%;
+    width: 5.21%;
+    height : 6.37%;
+    filter: grayscale(1);
+    z-index: 8;
+}
+.clCVcourtBtn:hover{
+    position: absolute;
+    width: 5.81%;
+    height : 6.97%;
+}
+
+.clCVLongBtn{
+    position: absolute;
+    top: 89%;
+    left: 70.31%;
+    width: 5.21%;
+    height : 7.96%;
+    z-index: 8;
+}
+.clCVLongBtn:hover{
+    width: 5.61%;
+    height : 8.56%;
+}
+/* ------------------------------------------------------------ */
+/*                         Icone du bouton d'aide               */
+/* ------------------------------------------------------------ */
+.clHelpBtn{
+    position: absolute;
+    top: 89%;
+    left: 76%;
+    width: 5.21%;
+    height : 7.96%;
+    z-index: 8;
+}
+.clHelpBtn:hover{
+    width: 5.81%;
+    height : 8.56%;
+}
+
+.clHelpScreen{
+    position: absolute;
+    top: 2%;
+    left: 5%;
+    width: 90%;
+    height : 82%;
+    z-index: 8;   
+    display: none;
+    /* border: solid black 1px;     */
+}
+
+.clHelpImg{
+    position: absolute;
+    width: 100%;
+    height : 100%;
+    /* border: solid red 1px;     */
+}
+
+.clHelpText{
+    position: absolute;
+    top: 7%;
+    left: 5%;
+    width: 93%;
+    height : 85%;
+    font-family : "thats_font_folksitalic", Georgia, cursive, serif, sans-serif;
+    /* font-family : "looneytunes_tilt_bttilt", Georgia, cursive, serif, sans-serif; */
+    font-style: normal;
+    font-size: 1.6em;
+    /* border: solid brown 1px;     */
+}
+
+h1 {
+    font-family : "looneytunes_tilt_bttilt", Georgia, cursive, serif, sans-serif;
+    text-align: center;
+    font-size: 1.6em;
+    text-transform: uppercase;
+    color: brown;
+}
+
+h2 {
+    font-family : "looneytunes_tilt_bttilt", Georgia, cursive, serif, sans-serif;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    text-align: justify;
+    color: brown;
+}
+
+p {
+    text-indent: 50px;
+    text-align: justify;
+}
+
+span{
+    font-family : "looneytunes_tilt_bttilt", Georgia, cursive, serif, sans-serif;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    text-align: justify;
+    font-weight: bold;
+    color: brown;
+    background-color: yellow;
+}
+
+
+/* ------------------------------------------------------------ */
+/*                Icones des vies de Vil-Coyote                 */
+/* ------------------------------------------------------------ */
+.clSpriteVie{
+    position: absolute;
+    top: 1%;
+    left: 1%;
+    width: 5.21%;
+    height : 6.37%;
+    z-index: 6;
+}
+/* ------------------------------------------------------------ */
+/*                 Victoire / Défaite / Rejouer                 */
+/* ------------------------------------------------------------ */
+
+.clImgVictoire{
+    position: absolute;
+    width: 27.55%;                
+    height: 9.05%;  
+    top : 25%;
+    left : 36%;
+    z-index: 7;
+    display: none;
+    /* border: solid black 1px;     */
+}
+
+.clImgPerdu{
+  position: absolute;
+  width: 18.80%;                
+  height: 9.05%;  
+  top : 25%;
+  left : 40%;
+  z-index: 7;
+  display: none;
+  /* border: solid black 1px;     */
+}
+
+.clImgRejouer{
+    position: absolute;
+    width: 59.95%;                
+    height: 10.05%;  
+    top : 50%;
+    left : 20%;
+    z-index: 7;
+    display: none;
+    /* border: solid black 1px;     */
+}
+  /* ------------------------------------------------------------ */
+  /*                         Fin CSS                             */
+  /* ------------------------------------------------------------ */
+</style>
+    <script src="variables.js"></script>
+    <script src="spriteAncestor.js"></script>
+    <script src="kbdMgr.js"></script>
+    <script src="toolBox.js"></script>
+    <script src="bipBip.js"></script>
+    <script src="vilCoyote.js"></script>
+    <script src="energyBall.js"></script>
+    <script src="vautour.js"></script>
+    <script src="backgroundMgr.js"></script>
+    <script src="keyFrameMgr.js"></script>
+    <script src="chiffres.js"></script>
+    <script src="score.js"></script>
+    
+    <script>
+      'use strict';
+
+      var mainLoop = function(){
+
+        // --------------------- Initialisations ------------------------
+        // ------------------------------------------------------------
+        // Initialisation des fonctions diverses dans ToolBox
+        // ------------------------------------------------------------
+        toolBox = new ToolBox();
+        toolBox.getScreenSize();
+
+        // ------------------------------------------------------------
+        // Initialisation des fonds d'écran
+        // ------------------------------------------------------------
+        fondEcranSol = new ObjectFondEcran('6s', 'scrollBkgndSol','idFondEcranSol');
+        fondEcranSol.initVar();
+        
+        fondEcranNuages = new ObjectFondEcran('3s','scrollBkgndNuages','idFondEcranNuages');
+        fondEcranNuages.initVar();
+        
+        // ------------------------------------------------------------
+        // Initialisation du Control-Panel et de ses boutons
+        // ------------------------------------------------------------
+        boiteControlPanel = document.getElementById('idBoiteControlPanel');
+        boiteControlPanel.style.width = '100%';
+        boiteControlPanel.style.height = '13%';
+        
+        cvCourtBtn = document.getElementById('idCVcourtBtn');
+        cvLongBtn  = document.getElementById('idCVLongBtn');
+        helpBtn = document.getElementById('idHelpBtn');
+        helpScreen = document.getElementById('idHelpScreen');
+        
+        // ------------------------------------------------------------
+        // Initialisation des messages de fin de partie
+        // ------------------------------------------------------------
+        imgVictoire = document.getElementById('idImgVictoire');
+        imgPerdu = document.getElementById('idImgPerdu');
+        imgRejouer = document.getElementById('idImgRejouer');
+
+        // ------------------------------------------------------------
+        // Polyfill pour Safari qui ne connait pas "RequestAnimationFrame"
+        // ------------------------------------------------------------
+        (function () {
+          var lastTime = 0;
+          var vendors = ['ms', 'moz', 'webkit', 'o'];
+          for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+            window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+            window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+          }
+          if(!window.requestAnimationFrame)
+            window.requestAnimationFrame = function (callback, element) {
+              var currTime = new Date().getTime();
+              var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+              var id = window.setTimeout(function () {
+                callback(currTime + timeToCall);
+              },
+              timeToCall);
+              lastTime = currTime + timeToCall;
+              return id;
+          };
+          if(!window.cancelAnimationFrame)
+            window.cancelAnimationFrame = function (id) {
+              clearTimeout(id);
+          };
+        }());
+
+        // ------------------------------------------------------------
+        // Initialisation des targets - Les targets representent les compétences 
+        // sous forme de Bip-Bip qu'il faut toucher pour révéler la compétence associée
+        // ------------------------------------------------------------
+        for (var i=0; i < dataBipBip.maxCompetences; i++){
+          dataBipBip.bipBip[i] = new BipBip('idBoiteBipBip'+i,'idMasqueBipBip'+i,'idSpriteBipBip'+i);
+          dataBipBip.bipBip[i].initVarMod();      
+        }
+        dataBipBip.targetActif = 0;
+        dataBipBip.bipBip[dataBipBip.targetActif].AfficheTargetActif();
+        
+        // ------------------------------------------------------------
+        // Initialisation de l'Objet "Vil-Coyote" commandé par l'utilsateur avec le clavier
+        // ------------------------------------------------------------
+        vilCoyote = new VilCoyote('idBoiteVilCoyote','idMasqueVilCoyote','idSpriteVilCoyote');
+        vilCoyote.initVarMod();
+
+        // ------------------------------------------------------------
+        // Initialisation de l'Objet ennemi "Vautour" 
+        // ------------------------------------------------------------
+        dataVautours.vautour[0] = new Vautour('idBoiteVautour0','idMasqueVautour0','idSpriteVautour0');
+        dataVautours.vautour[0].initVarMod();          
+        
+        // ------------------------------------------------------------
+        // Initialisation du gestionnaire de KeyFrames (pour les animations)
+        // ------------------------------------------------------------
+        objectKeyFrame = new ObjectKeyFrame();      
+        
+        // ------------------------------------------------------------
+        // --------------------- Main Program -------------------------
+        // ------------------------------------------------------------
+        // Lancement de l'Ecoute du clavier, et des divers écouteurs
+        //                   and that's All Folks !!!
+        //-------------------------------------------------------------
+        window.addEventListener('keydown',vilCoyote.keyboardMgr.gereAppuiTouche.bind(vilCoyote.keyboardMgr));   
+        window.addEventListener('keyup',vilCoyote.keyboardMgr.gereReleaseTouche.bind(vilCoyote.keyboardMgr));
+        window.addEventListener('click',toolBox.openCV.bind(toolBox));
+        window.addEventListener('resize',toolBox.refreshScreen.bind(toolBox));
+      };
+      // --------------------- Point d'entrée de l'application  ---------------------------
+      // Lance l'éxecution du script après chargement et affichage du document  (Window)
+      //-----------------------------------------------------------------------------------
+      window.onload = mainLoop;      
+  </script>
+
+<!-- ******************************************************************* -->
+<!--                               HTML                                  -->
+<!-- ******************************************************************* -->
+  </head>
+  <body>      
+
+    <!--  Arrière-Plan "Sol" en parallaxe   -->
+    <div id="idFondEcranSol" class="clFondEcranSol"></div>
+
+    <!--  Arrière-Plan "Nuages" en parallaxe   -->
+    <div id="idFondEcranNuages" class="clFondEcranNuages"></div>
+
+    <img id="idSpriteVie0" class="clSpriteVie" src="images/running-vil-coyote.png" alt="Sprite vie 'Vil-Coyote"/>
+    <img id="idSpriteVie1" class="clSpriteVie" src="images/running-vil-coyote.png" alt="Sprite vie 'Vil-Coyote"/>
+    <img id="idSpriteVie2" class="clSpriteVie" src="images/running-vil-coyote.png" alt="Sprite vie 'Vil-Coyote"/>
+
+    <!-- Personnage Principal "Vil-Coyote"  -->
+    <div id="idBoiteVilCoyote" class="clBoiteVilCoyote">
+      <div id="idMasqueVilCoyote" class="clMasqueVilCoyote">
+        <img id="idSpriteVilCoyote" class="clSpriteVilCoyote" src="images/vil-coyote-sur-module-start-01-04-Droite.png" alt="Sprite 'Vil-Coyote'"/>
+      </div>
+    </div>
+
+    <!-- Boules d'énergie électrique tirées par Vil-Coyote -->
+    <div id="idBoiteEnergyBall0" class="clBoiteEnergyBall">
+      <div id="idMasqueEnergyBall0" class="clMasqueEnergyBall">
+        <img id="idSpriteEnergyBall0" class="clSpriteEnergyBall" src="images/vil-coyote-energy-balls.png" alt="Sprite 'Boule d\'énergie'"/>
+      </div>
+    </div>
+
+    <!-- Premier type d'ennemi : Le Vautour -->
+    <div id="idBoiteVautour0" class="clBboiteVautour">
+      <div id="idMasqueVautour0" class="clMasqueVautour">
+        <img id="idSpriteVautour0" class="clSpriteVautour" src="images/vulture_face_one_flying-gauche.png" alt="Sprite 'Vautour'"/>
+      </div>
+    </div>
+
+    <!-- Panneau de contrôle de bas d'écran -->
+    <div id="idBoiteControlPanel" class="clBoiteControlPanel">
+      <img id="idImgControlPanel" class="clImgControlPanel" src="images/controlPanel1024px-by-512px.png" alt="Sprite 'Container de bas d\'écran'"/>
+    </div>
+
+    <!-- Targets "Bip-Bip" que Vil-Coyote doit toucher -->
+    <div id="idBoiteBipBip0" class="clBoiteBipBip">
+      <div id="idMasqueBipBip0" class="clMasqueBipBip">
+        <img id="idSpriteBipBip0" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip1" class="clBoiteBipBip">
+      <div id="idMasqueBipBip1" class="clMasqueBipBip">
+        <img id="idSpriteBipBip1" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip2" class="clBoiteBipBip">
+      <div id="idMasqueBipBip2" class="clMasqueBipBip">
+        <img id="idSpriteBipBip2" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip3" class="clBoiteBipBip">
+      <div id="idMasqueBipBip3" class="clMasqueBipBip">
+        <img id="idSpriteBipBip3" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip4" class="clBoiteBipBip">
+      <div id="idMasqueBipBip4" class="clMasqueBipBip">
+        <img id="idSpriteBipBip4" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip5" class="clBoiteBipBip">
+      <div id="idMasqueBipBip5" class="clMasqueBipBip">
+        <img id="idSpriteBipBip5" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip6" class="clBoiteBipBip">
+      <div id="idMasqueBipBip6" class="clMasqueBipBip">
+        <img id="idSpriteBipBip6" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip7" class="clBoiteBipBip">
+      <div id="idMasqueBipBip7" class="clMasqueBipBip">
+        <img id="idSpriteBipBip7" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip8" class="clBoiteBipBip">
+      <div id="idMasqueBipBip8" class="clMasqueBipBip">
+        <img id="idSpriteBipBip8" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip9" class="clBoiteBipBip">
+      <div id="idMasqueBipBip9" class="clMasqueBipBip">
+        <img id="idSpriteBipBip9" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteBipBip10" class="clBoiteBipBip">
+      <div id="idMasqueBipBip10" class="clMasqueBipBip">
+        <img id="idSpriteBipBip10" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
+      </div>
+    </div>  
+
+
+<!-- Chiffres 0 à 9 + "/" -->
+    <div id="idBoiteChiffre0" class="clBoiteChiffre">
+      <div id="idMasqueChiffre0" class="clMasqueChiffre">
+        <img id="idSpriteChiffre0" class="clSpriteChiffre" src="images/LooneyTunesCouleur.png" alt="Emplacement du 1er chiffre du score"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteChiffre1" class="clBoiteChiffre">
+      <div id="idMasqueChiffre1" class="clMasqueChiffre">
+        <img id="idSpriteChiffre1" class="clSpriteChiffre" src="images/LooneyTunesCouleur.png" alt="Emplacement du 2eme chiffre du score'"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteChiffre2" class="clBoiteChiffre">
+      <div id="idMasqueChiffre2" class="clMasqueChiffre">
+        <img id="idSpriteChiffre2" class="clSpriteChiffre" src="images/LooneyTunesCouleur.png" alt="Emplacement du séparateur du score"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteChiffre3" class="clBoiteChiffre">
+      <div id="idMasqueChiffre3" class="clMasqueChiffre">
+        <img id="idSpriteChiffre3" class="clSpriteChiffre" src="images/LooneyTunesCouleur.png" alt="Emplacement du 3eme chiffre du score"/>
+      </div>
+    </div>  
+    
+    <div id="idBoiteChiffre4" class="clBoiteChiffre">
+        <div id="idMasqueChiffre4" class="clMasqueChiffre">
+          <img id="idSpriteChiffre4" class="clSpriteChiffre" src="images/LooneyTunesCouleur.png" alt="Emplacement du 4eme chiffre du score'"/>
+        </div>
+    </div>  
+
+
+    <div id="idMasqueVictoire" class="clMasqueVictoire">
+      <img id="idImgVictoire" class="clImgVictoire" src="images/victoire.png" alt="'Victoire'"/>
+    </div>
+
+    <div id="idMasquePerdu" class="clMasquePerdu">
+      <img id="idImgPerdu" class="clImgPerdu" src="images/perdu.png" alt="'Perdu'"/>
+    </div>
+
+    <div id="idMasqueRejouer" class="clMasqueRejouer">
+      <img id="idImgRejouer" class="clImgRejouer" src="images/rejouer.png" alt="'Rejouer'"/>
+    </div>
+  
+    <img id="idCVcourtBtn" class="clCVcourtBtn" src="images/rolled-up.png" title="CV court" alt="Sprite du 'Parchemin'"/>
+    <img id="idCVLongBtn" class="clCVLongBtn" src="images/brown-book.png" title="CV long" alt="Sprite du 'Grimoire'"/>
+    <img id="idHelpBtn" class="clHelpBtn" src="images/help.png" title="Help button" alt="Sprite du bouton 'Help'"/>
+
+    <div id="idHelpScreen" class="clHelpScreen">
+      <img id="idHelpImg" class="clHelpImg" src="images/2048PX-BY-1536PX.png" title="Help screen" alt="Sprite de l\'écran 'Help'"/>
+      <div id="idHelpText" class="clHelpText">
+      </div>
+    </div>
+    <noscript>
+      <p>Veuillez activer JavaScript</p>
+    </noscript>    
+  </body>
+</html>
