@@ -13,10 +13,9 @@
 }
 
 body {
-    /* background-color: royalblue; */
-    /* background-color: red; */
-    background-color: #d9c97c;
-    overflow: hidden;                   /* Pour empecher l'affichage des Scroll-Bar */    
+    background-color: white;
+    background-image: url("../images/FondEcran transparent.png");
+    background-size: cover;
 }
 
 
