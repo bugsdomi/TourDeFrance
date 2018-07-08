@@ -5,8 +5,8 @@
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Vigor+</title>
-    <link rel="stylesheet" href="src/vigor.css">
+    <title>Tour de France</title>
+    <link rel="stylesheet" href="static/css/TourDeFrance.css">
 
 <script>
 // ********************************************************************* //
@@ -30,81 +30,121 @@
 // *                                                                   * //
 // ********************************************************************* //
 </script>
-    <script src="variables.js"></script>
-    <script src="spriteAncestor.js"></script>
-    <script src="kbdMgr.js"></script>
-    <script src="pils.js"></script>
-    <script src="toolBox.js"></script>
-    <script src="kbdMgr.js"></script>
+<script src="static/js/variables.js"></script>
+<!-- <script src="spriteAncestor.js"></script>
+<script src="pils.js"></script> -->
+<script src="static/js/toolBox.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var websocketConnection = io();
+// var websocketConnection = io('http://192.168.0.20:3000');
+// var websocketConnection = io('http://localhost:3000');
+
+  var vPils = {};
+  var vColorPil =
+    {
+          couleur : '',
+          fichier : '',
+    }
+
+  websocketConnection.on('drawPils', function(vPilules){
+    vColorPil = vPilules.objectColorPlayer['player'+vPilules.currentPlayer];
+    vColorPil.fichier = 'url("'+vColorPil.fichier+'")';
+
+    for (let i=0; i<=vPilules.maxPilsByPlayer-1; i++){
+      vPils[i] = window.document.createElement('div');
+      window.document.body.appendChild(vPils[i]);
+      
+      vPils[i].style.position= 'absolute';
+      vPils[i].style.backgroundImage= vColorPil.fichier;
+      vPils[i].style.backgroundSize= 'contain';
+      vPils[i].style.backgroundRepeat= 'no-repeat';
+      vPils[i].style.width= '8%';
+      vPils[i].style.height= '8%';
+      // // XXXXXXXXXX
+      // // this.sprite.id= Math.random()*10000<<0;
+      // // this.sprite.innerHTML= vMonCarre.id;      
+      
+      vPils[i].style.left= vPilules.pils[i].left;
+      vPils[i].style.top = vPilules.pils[i].top;
+      vPils[i].style.transformOrigin='center';
+      vPils[i].style.transform='rotate('+(vPilules.pils[i].orientation)+'deg)';
+
+    // socket.emit('my other event', { my: 'data' });
+//   }
+    }
+  });
+</script>
+
    
     <script>
       'use strict';
 
-      var mainLoop = function(){
+      var mainLoop = function(io){
 
         // --------------------- Initialisations ------------------------
         // ------------------------------------------------------------
-        // Initialisation des fonctions diverses dans ToolBox
+        // Transmission des caractéristiques de l'écran du client au serveur 
+        // pour qu il puisse calculer aléatoirement la position des pilules
         // ------------------------------------------------------------
-        toolBox = new ToolBox();
-        toolBox.getScreenSize();
-
-        // ------------------------------------------------------------
-        
+        websocketConnection.on('askScreenSize', function(pDataScreenSize){
+console.log('Client recois une demande de Taille Ecran');
+          toolBox = new ToolBox();
+          toolBox.getScreenSize();
+          
+          pDataScreenSize = 
+          {
+            vScreenHeight: toolBox.screenHeight,
+            vScreenWidth : toolBox.screenWidth
+          }
+console.log('Screen Sizes : ',pDataScreenSize);
+          websocketConnection.emit('receiveScreenSize', pDataScreenSize);
+        });
         
         // ------------------------------------------------------------
         // Initialisation du Control-Panel et de ses boutons
         // ------------------------------------------------------------
-        boiteControlPanel = document.getElementById('idBoiteControlPanel');
-        boiteControlPanel.style.width = '100%';
-        boiteControlPanel.style.height = '13%';
+        // boiteControlPanel = document.getElementById('idBoiteControlPanel');
+        // boiteControlPanel.style.width = '100%';
+        // boiteControlPanel.style.height = '13%';
         
-        helpBtn = document.getElementById('idHelpBtn');
-        helpScreen = document.getElementById('idHelpScreen');
+        // helpBtn = document.getElementById('idHelpBtn');
+        // helpScreen = document.getElementById('idHelpScreen');
         
         // ------------------------------------------------------------
         // Initialisation des messages de fin de partie
         // ------------------------------------------------------------
-        imgVictoire = document.getElementById('idImgVictoire');
-        imgPerdu = document.getElementById('idImgPerdu');
-        imgRejouer = document.getElementById('idImgRejouer');
+        // imgVictoire = document.getElementById('idImgVictoire');
+        // imgPerdu = document.getElementById('idImgPerdu');
+        // imgRejouer = document.getElementById('idImgRejouer');
 
         // ------------------------------------------------------------
         // Polyfill pour Safari qui ne connait pas "RequestAnimationFrame"
         // ------------------------------------------------------------
-        (function () {
-          var lastTime = 0;
-          var vendors = ['ms', 'moz', 'webkit', 'o'];
-          for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-            window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-            window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-          }
-          if(!window.requestAnimationFrame)
-            window.requestAnimationFrame = function (callback, element) {
-              var currTime = new Date().getTime();
-              var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-              var id = window.setTimeout(function () {
-                callback(currTime + timeToCall);
-              },
-              timeToCall);
-              lastTime = currTime + timeToCall;
-              return id;
-          };
-          if(!window.cancelAnimationFrame)
-            window.cancelAnimationFrame = function (id) {
-              clearTimeout(id);
-          };
-        }());
+        // (function () {
+        //   var lastTime = 0;
+        //   var vendors = ['ms', 'moz', 'webkit', 'o'];
+        //   for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        //     window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+        //     window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+        //   }
+        //   if(!window.requestAnimationFrame)
+        //     window.requestAnimationFrame = function (callback, element) {
+        //       var currTime = new Date().getTime();
+        //       var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        //       var id = window.setTimeout(function () {
+        //         callback(currTime + timeToCall);
+        //       },
+        //       timeToCall);
+        //       lastTime = currTime + timeToCall;
+        //       return id;
+        //   };
+        //   if(!window.cancelAnimationFrame)
+        //     window.cancelAnimationFrame = function (id) {
+        //       clearTimeout(id);
+        //   };
+        // }());
 
-        // ------------------------------------------------------------
-        // Initialisation des targets - Les targets representent les compétences 
-        // sous forme de Bip-Bip qu'il faut toucher pour révéler la compétence associée
-        // ------------------------------------------------------------
-        for (var i=0; i < maxPilsParJoueur; i++){
-          pils[i] = new Pils(i).initVar("blue");      
-        }
-        // dataPils.targetActif = 0;
-        // dataPils.bipBip[dataPils.targetActif].AfficheTargetActif();
         
         // ------------------------------------------------------------
         // Initialisation de l'Objet "Vil-Coyote" commandé par l'utilsateur avec le clavier
@@ -129,7 +169,7 @@
       // --------------------- Point d'entrée de l'application  ---------------------------
       // Lance l'éxecution du script après chargement et affichage du document  (Window)
       //-----------------------------------------------------------------------------------
-      window.onload = mainLoop;      
+      window.onload = mainLoop(io);      
   </script>
 
 <!-- ******************************************************************* -->
@@ -138,55 +178,7 @@
   </head>
   <body>      
 
-
-    <img id="idSpriteVie0" class="clSpriteVie" src="images/running-vil-coyote.png" alt="Sprite vie 'Vil-Coyote"/>
-    <img id="idSpriteVie1" class="clSpriteVie" src="images/running-vil-coyote.png" alt="Sprite vie 'Vil-Coyote"/>
-    <img id="idSpriteVie2" class="clSpriteVie" src="images/running-vil-coyote.png" alt="Sprite vie 'Vil-Coyote"/>
-
-    <!-- Personnage Principal "Vil-Coyote"  -->
-    <div id="idBoiteVilCoyote" class="clBoiteVilCoyote">
-      <div id="idMasqueVilCoyote" class="clMasqueVilCoyote">
-        <img id="idSpriteVilCoyote" class="clSpriteVilCoyote" src="images/vil-coyote-sur-module-start-01-04-Droite.png" alt="Sprite 'Vil-Coyote'"/>
-      </div>
-    </div>
-
-
-    <!-- Panneau de contrôle de bas d'écran -->
-    <div id="idBoiteControlPanel" class="clBoiteControlPanel">
-      <img id="idImgControlPanel" class="clImgControlPanel" src="images/controlPanel1024px-by-512px.png" alt="Sprite 'Container de bas d\'écran'"/>
-    </div>
-
-    <!-- Targets "Bip-Bip" que Vil-Coyote doit toucher -->
-    <div id="idBoiteBipBip0" class="clBoiteBipBip">
-      <div id="idMasqueBipBip0" class="clMasqueBipBip">
-        <img id="idSpriteBipBip0" class="clSpriteBipBip" src="images/Bip-Bip.png" alt="Sprite 'Jeton Bip-Bip'"/>
-      </div>
-    </div>  
-    
-
-
-    <div id="idMasqueVictoire" class="clMasqueVictoire">
-      <img id="idImgVictoire" class="clImgVictoire" src="images/victoire.png" alt="'Victoire'"/>
-    </div>
-
-    <div id="idMasquePerdu" class="clMasquePerdu">
-      <img id="idImgPerdu" class="clImgPerdu" src="images/perdu.png" alt="'Perdu'"/>
-    </div>
-
-    <div id="idMasqueRejouer" class="clMasqueRejouer">
-      <img id="idImgRejouer" class="clImgRejouer" src="images/rejouer.png" alt="'Rejouer'"/>
-    </div>
-  
-    <img id="idCVcourtBtn" class="clCVcourtBtn" src="images/rolled-up.png" title="CV court" alt="Sprite du 'Parchemin'"/>
-    <img id="idCVLongBtn" class="clCVLongBtn" src="images/brown-book.png" title="CV long" alt="Sprite du 'Grimoire'"/>
-    <img id="idHelpBtn" class="clHelpBtn" src="images/help.png" title="Help button" alt="Sprite du bouton 'Help'"/>
-
-    <div id="idHelpScreen" class="clHelpScreen">
-      <img id="idHelpImg" class="clHelpImg" src="images/2048PX-BY-1536PX.png" title="Help screen" alt="Sprite de l\'écran 'Help'"/>
-      <div id="idHelpText" class="clHelpText">
-      </div>
-    </div>
-    <noscript>
+   <noscript>
       <p>Veuillez activer JavaScript</p>
     </noscript>    
   </body>

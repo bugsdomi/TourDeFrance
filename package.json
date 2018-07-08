@@ -1,5 +1,5 @@
 {
-  "name": "TourDeFrance",
+  "name": "tourdefrance",
   "version": "1.0.0",
   "description": "Date : Juin 2018",
   "main": "TourDeFrance.js",
@@ -8,17 +8,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bugsdomi/Vigor.git"
+    "url": "git+https://github.com/bugsdomi/TourDeFrance.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/bugsdomi/Vigor/issues"
+    "url": "https://github.com/bugsdomi/TourDeFrance/issues"
   },
-  "homepage": "https://github.com/bugsdomi/Vigor#readme",
+  "homepage": "https://github.com/bugsdomi/TourDeFrance#readme",
   "dependencies": {
+    "express": "^4.16.3",
     "mongodb": "^3.1.0",
+    "pug": "^2.0.3",
     "socket.io": "^2.1.1"
   }
 }
