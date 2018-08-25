@@ -1,171 +1,48 @@
 doctype html
-html(lang='fr')
-  head
-    meta(charset='UTF-8')
-    meta(http-equiv='X-UA-Compatible', content='IE=edge')
-    title Tour de France
-    link(rel='stylesheet', href='static/css/TourDeFrance.css')
-    script.
-      // ********************************************************************* //
-      // *                                                                   * //
-      // *       "Tour de France" - Juin 2018                                * //
-      // *                                                                   * //
-      // ********************************************************************* //
-      // *                                                                   * //
-      // *   Dominique Hourdequin - Juin 2018                                * //
-      // *   Projet N°2 - Type "Back-end"                                    * //
-      // *                                                                   * //
-      // *   Formation "Développeur Full Stack Javascript"                   * //
-      // *   Classe : "DIWJS08" - Printemps 2018                             * //
-      // *   IFOCOP - Paris XI                                               * //
-      // *                                                                   * //
-      // *   Contact à l'IFOCOP qui transmettra mes coordonnées sur demande  * //
-      // *   Responsable de formation                                        * //
-      // *   Madame Fabienne Thiry                                           * //
-      // *   mail : fthiry@ifocop.fr                                         * //
-      // *   Tel : 01-40-21-83-78                                            * //
-      // *                                                                   * //
-      // ********************************************************************* //
-    script(src='static/js/variables.js')
-    //
-      <script src="spriteAncestor.js"></script>
-      <script src="pils.js"></script>
-    script(src='static/js/toolBox.js')
-    script(src='/socket.io/socket.io.js')
-    script.
-      var websocketConnection = io();
-      // var websocketConnection = io('http://192.168.0.20:3000');
-      // var websocketConnection = io('http://localhost:3000');
-      var vPils = {};
-      var vColorPil =
-      {
-      couleur : '',
-      fichier : '',
-      }
-      websocketConnection.on('drawPils', function(vPilules){
-      console.log('vPilules :',vPilules);
-      vColorPil = vPilules.objectColorPlayer['player'+vPilules.currentPlayer];
-      console.log('0 vColorPil : ',vColorPil);
-      vColorPil.fichier = 'url("'+vColorPil.fichier+'")';
-      console.log('1 vColorPil : ',vColorPil);
-      console.log('1 vColorPil.fichier : ',vColorPil.fichier);
-      for (let i=0; i<=vPilules.maxPilsByPlayer-1; i++){
-      vPils[i] = window.document.createElement('div');
-      window.document.body.appendChild(vPils[i]);
-      console.log('vPils[i] : ',vPils[i]);
-      vPils[i].style.position= 'absolute';
-      console.log('vPils[i].style.position : ',vPils[i].style.position);
-      vPils[i].style.backgroundImage= vColorPil.fichier;
-      console.log('vPils[i].style.backgroundImage : ',vColorPil.fichier);
-      vPils[i].style.backgroundSize= 'contain';
-      console.log('vPils[i].style.backgroundSize : ',vPils[i].style.backgroundSize);
-      vPils[i].style.backgroundRepeat= 'no-repeat';
-      console.log('vPils[i].style.backgroundRepeat : ',vPils[i].style.backgroundRepeat);
-      vPils[i].style.width= '8%';
-      console.log('vPils[i].style.width : ',vPils[i].style.width);
-      vPils[i].style.height= '8%';
-      console.log('vPils[i].style.height : ',vPils[i].style.height);
-      // // XXXXXXXXXX
-      // // this.sprite.id= Math.random()*10000<<0;
-      // // this.sprite.innerHTML= vMonCarre.id;
-      //         // calcul de positions aléatoires sous contraintes (pas aux bords de l'ecran et jamais au-dessus du Control-Panel)
-      vPils[i].style.left= vPilules.pils[i].left;
-      console.log('vPils[i].style.left : ',vPils[i].style.left);
-      vPils[i].style.top = vPilules.pils[i].top;
-      console.log('vPils[i].style.top : ',vPils[i].style.top);
-      vPils[i].style.transformOrigin='center';
-      console.log('vPils[i].style.transformOrigin : ',vPils[i].style.transformOrigin);
-      vPils[i].style.transform='rotate('+(vPilules.pils[i].orientation)+'deg)';
-      console.log('vPils[i].style.transform : ',vPils[i].style.transform,'***','rotate('+(vPilules.pils[i].orientation)+'deg)');
-      // socket.emit('my other event', { my: 'data' });
-      //   }
-      }
-      });
-    script.
-      'use strict';
-      var mainLoop = function(io){
-      // --------------------- Initialisations ------------------------
-      // ------------------------------------------------------------
-      // Transmission des caractéristiques de l'écran du client au serveur
-      // pour qu il puisse calculer aléatoirement la position des pilules
-      // ------------------------------------------------------------
-      websocketConnection.on('askScreenSize', function(pDataScreenSize){
-      console.log('Client recois une demande de Taille Ecran');
-      toolBox = new ToolBox();
-      toolBox.getScreenSize();
-      pDataScreenSize =
-      {
-      vScreenHeight: toolBox.screenHeight,
-      vScreenWidth : toolBox.screenWidth
-      }
-      console.log('Screen Sizes : ',pDataScreenSize);
-      websocketConnection.emit('receiveScreenSize', pDataScreenSize);
-      });
-      // ------------------------------------------------------------
-      // Initialisation du Control-Panel et de ses boutons
-      // ------------------------------------------------------------
-      // boiteControlPanel = document.getElementById('idBoiteControlPanel');
-      // boiteControlPanel.style.width = '100%';
-      // boiteControlPanel.style.height = '13%';
-      // helpBtn = document.getElementById('idHelpBtn');
-      // helpScreen = document.getElementById('idHelpScreen');
-      // ------------------------------------------------------------
-      // Initialisation des messages de fin de partie
-      // ------------------------------------------------------------
-      // imgVictoire = document.getElementById('idImgVictoire');
-      // imgPerdu = document.getElementById('idImgPerdu');
-      // imgRejouer = document.getElementById('idImgRejouer');
-      // ------------------------------------------------------------
-      // Polyfill pour Safari qui ne connait pas "RequestAnimationFrame"
-      // ------------------------------------------------------------
-      // (function () {
-      //   var lastTime = 0;
-      //   var vendors = ['ms', 'moz', 'webkit', 'o'];
-      //   for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-      //     window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-      //     window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-      //   }
-      //   if(!window.requestAnimationFrame)
-      //     window.requestAnimationFrame = function (callback, element) {
-      //       var currTime = new Date().getTime();
-      //       var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-      //       var id = window.setTimeout(function () {
-      //         callback(currTime + timeToCall);
-      //       },
-      //       timeToCall);
-      //       lastTime = currTime + timeToCall;
-      //       return id;
-      //   };
-      //   if(!window.cancelAnimationFrame)
-      //     window.cancelAnimationFrame = function (id) {
-      //       clearTimeout(id);
-      //   };
-      // }());
-      // ------------------------------------------------------------
-      // Initialisation de l'Objet "Vil-Coyote" commandé par l'utilsateur avec le clavier
-      // ------------------------------------------------------------
-      // vilCoyote = new VilCoyote('idBoiteVilCoyote','idMasqueVilCoyote','idSpriteVilCoyote');
-      // vilCoyote.initVarMod();
-      // ------------------------------------------------------------
-      // Initialisation du gestionnaire de KeyFrames (pour les animations)
-      // ------------------------------------------------------------
-      // objectKeyFrame = new ObjectKeyFrame();
-      // ------------------------------------------------------------
-      // --------------------- Main Program -------------------------
-      // ------------------------------------------------------------
-      // Lancement de l'Ecoute du clavier, et des divers écouteurs
-      //                   and that's All Folks !!!
-      //-------------------------------------------------------------
-      // window.addEventListener('keydown',vilCoyote.keyboardMgr.gereAppuiTouche.bind(vilCoyote.keyboardMgr));
-      // window.addEventListener('keyup',vilCoyote.keyboardMgr.gereReleaseTouche.bind(vilCoyote.keyboardMgr));
-      };
-      // --------------------- Point d'entrée de l'application  ---------------------------
-      // Lance l'éxecution du script après chargement et affichage du document  (Window)
-      //-----------------------------------------------------------------------------------
-      window.onload = mainLoop(io);
-    // *******************************************************************
-    // HTML
-    // *******************************************************************
-  body
-    noscript
-      p Veuillez activer JavaScript
+head
+  meta(charset='UTF-8')
+  meta(http-equiv='X-UA-Compatible' content='IE=edge')
+  title Tour de France
+  link(rel='stylesheet' href='static/css/Index.css')
+  script.
+    // ********************************************************************* //
+    // *                                                                   * //
+    // *       "Tour de France" - Juin 2018                                * //
+    // *                                                                   * //
+    // ********************************************************************* //
+    // *                                                                   * //
+    // *   Dominique Hourdequin - Juin 2018                                * //
+    // *   Projet N°2 - Type "Back-end"                                    * //
+    // *                                                                   * //
+    // *   Formation "Développeur Full Stack Javascript"                   * //
+    // *   Classe : "DIWJS08" - Printemps 2018                             * //
+    // *   IFOCOP - Paris XI                                               * //
+    // *                                                                   * //
+    // *   Contact à l'IFOCOP qui transmettra mes coordonnées sur demande  * //
+    // *   Responsable de formation                                        * //
+    // *   Madame Fabienne Thiry                                           * //
+    // *   mail : fthiry@ifocop.fr                                         * //
+    // *   Tel : 01-40-21-83-78                                            * //
+    // *                                                                   * //
+    // ********************************************************************* //
+  script(src='/socket.io/socket.io.js')
+  script(src='static/js/variables.js')
+  script(src='static/js/toolBox.js')
+  script(src='static/js/PlayersClientSide.js')
+  script(src='static/js/SPAMgr.js')
+// *******************************************************************
+// Formulaire de saisie du login / PWD
+// *******************************************************************
+// <form id="idLoginForm" onsubmit="checkForm(this)">
+form#idLoginForm
+  fieldset
+    legend
+      | Pour jouer &agrave; &quot;Tour de France&quot;, vous devez vous identifier
+    ol
+      li
+        label(for='pseudo') Votre Pseudo
+        input#pseudo(name='pseudo' type='text' placeholder='Pseudo' required='' autofocus='')
+      li
+        input.cButton(type='submit' value='Envoyer')
+noscript
+  p Veuillez activer JavaScript

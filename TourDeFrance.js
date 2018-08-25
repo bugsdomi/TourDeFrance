@@ -1,213 +1,198 @@
-
 const express = require('express');
-const mongodb = require('mongodb');
 const SocketIo = require('socket.io');
-const Pils = require('./pils');
+const PlayersServer = require('./PlayersServerSide');
 
 // -------------------------------------------------------------------------
-// Création de l'application ExpressJS
+// Initilisations des variables, structures, constantes...
 // -------------------------------------------------------------------------
-const app = express();
+let vPlayersServer = new PlayersServer();   // Instanciation de l'objet descrivant l'ensemble des joueurs et les méthodes de gestion de ces joueurs
+let vNbrConnectionsAlive=0;                 // Nombre total de connexions en cours sur ce serveur     !!! ATTENTION !!! Il ne's'agit pas encore de joueurs valides , juste de connexions
+let vGameStarted = false;                   // Indicateur de lancement de la partie
 
-// -------------------------------------------------------------------------
-// On se connecte à mongodb, on vérifie qu elle est lancée et que la BDD "TourDeFrance"
-// est accessible, sinon, message d'avertissement et fin directe du programme
-// -------------------------------------------------------------------------
-var checkDBConnect = function(){
-    mongodb.MongoClient.connect("mongodb://localhost:27017/TourDeFrance", function(err, db) {
-        if (err) {
-            console.log('Base de données inaccessible, le jeu ne peut pas se lancer');
-        throw "Base de données inaccessible, le jeu ne peut pas se lancer, contacter l\'Administrateur système";
-        } else {
-            console.log('La BDD tourne');
-        }
-    });
-}
 // -------------------------------------------------------------------------
 // Verification de l'accessibilité de la base - Je ne le fais qu'au debut du jeu, 
-// mais en tout état de cause, normalement, je devrais m'assurer qu'elle est 
-// toujours accessible en cours de partie
-// Si elle ne fonctionne pas, je sors du jeu
+// mais en tout état de cause, normalement, professionnellement, je devrais 
+// m'assurer qu'elle est toujours accessible en cours de partie, mais dans le 
+// contexte ultra-limité de cet atelier, ce n'est pas nécessaire
+// Si elle ne fonctionne pas, je sors du jeu, après avoir envoyé un message à la console
 // -------------------------------------------------------------------------
-checkDBConnect();
-
+vPlayersServer.checkDBConnect();
 // -------------------------------------------------------------------------
+// Création de l'application ExpressJS
 // Création des routes ExppressJS, car je vais utiliser cet outil pour transferer
-// au client la page HTML et tout ce qui lui est nécessaire pour s'afficher et se gérer
+// au client la page HTML et tout ce qui lui est nécessaire pour s'afficher et gérer
+// l'affichage
 // -------------------------------------------------------------------------
+const app = express();
 app.set('view engine', 'pug');
 app.use('/static', express.static(__dirname + '/public'));
 app.get('/', function(req, res){
-    console.log('render de la surface de jeu')
     res.render('index');    
 });
-
+// -------------------------------------------------------------------------
+// Création du serveur et lancement du listener
+// -------------------------------------------------------------------------
 const server = app.listen(3000, function() {
     const addressHote = server.address().address;
     const portEcoute = server.address().port
     console.log('Écoute du serveur http://%s:%s',addressHote,portEcoute);
 });
-
-
 // ------------------------------------------------------------
 // Fin de la partie HTTP - Début de la partie WebSocket avec "Socket.io"
 // ------------------------------------------------------------
-
-// -------------------------------------------------------------------------
-// A la détection de la connexion,on initialise la partie player sur le client :
-// - Vérification du nombre de joueurs (Ok, si <= 4)
-// - Login
-//      |_ Affichage du formulaire de saisie du login
-//      |_ Attente du login
-//      |_ Vérification de la validité du login
-//      |_ caclul des positions des pilules du player
-// -------------------------------------------------------------------------
-// stockage des coordonnées des pilules qui vont être générées pour le player
-// 4 joueurs maximum - 50 pilules pour chacun 
-let vPilules = 
-{
-    currentPlayer: -1,
-    maxPilsByPlayer: 50,
-    objectColorPlayer : 
-    {   
-        player0 : 
-        {
-            couleur : 'blue',
-            fichier : "static/images/pil-blue-white.png",
-        },
-        player1 : 
-        {
-            couleur : 'red',
-            fichier : "static/images/pil-red-white.png",
-        },
-        player2 : 
-        {
-            couleur : 'yellow',
-            fichier : "static/images/pil-yellow-white.png",
-        },
-        player3 : 
-        {
-            couleur : 'green',
-            fichier : "static/images/pil-green-white.png",
-        }
-        // cyan, green, orange, redBlack, red, violet, black, white, yellow
-    },
-    pils: {},
-}
-
-// ------------------------------------------------------------
-// 
-// ------------------------------------------------------------
-let vNumJoueur = -1;
-
-// ------------------------------------------------------------
-// Initialisation des targets - Les targets representent pilules 
-// de produits dopants que les cyclistes doivent s'approprier
-// avant que les joueurs aient mangé les leurs
-// ------------------------------------------------------------
-var initPilsDeck = function(pNumJoueur,pDataScreenSize){
-
-    // console.log('objectColorPils.player0.couleur : ',objectColorPlayer.player0.couleur);
-    // console.log(' objectColorPils['player0'].couleur : ',objectColorPlayer['player0'].couleur);
-    // console.log(' objectColorPils['player'+0].couleur : ',objectColorPlayer['player'+0].couleur);
-
-    vPilules.currentPlayer = pNumJoueur;                // Ajout dans les données du message du N0 de joueur actuel
-
-    for (let i=0; i < vPilules.maxPilsByPlayer; i++){
-        var pils = new Pils()
-        pils.initVar(pDataScreenSize);    // Création de chaque pilule individuelle pour le player 
-        vPilules.pils[i] = pils;          // On ajoute la pilule qu'on vient de créer dans un objet concentrateur global
-
-    }
-        // dataPils.targetActif = 0;
-        // dataPils.bipBip[dataPils.targetActif].AfficheTargetActif();
-// console.log('Pilules : ', vPilules);
-}
-
-
 
 // -------------------------------------------------------------------------
 // Création de la liaison socket.io sur la base du serveur HTTP déja déclaré précédement
 // -------------------------------------------------------------------------
 let socketIo = new SocketIo(server);
 
-socketIo.on('connection', function(websocketConnection){
-console.log('websocketConnection.handshake.headers.host : ',websocketConnection.handshake.headers.host);
-console.log('websocketConnection.handshake.address : ',websocketConnection.handshake.address);
+socketIo.on('connection', function(webSocketConnection){                        // Une connexion au serveur vient d être faite
+    let vCurrentPlayerInSession=-1;                                             // No de joueur courant validé dans la partie
+    vNbrConnectionsAlive++;                                                     // Nombre de connexions (pas forcément des joueurs dans une partie)
+console.log('--------------------------------------------------------------------------------------------------------------------')
+console.log('Connection  Avant : Nombre de connectés : ', vNbrConnectionsAlive,'--- Nombre de joueurs en jeu : ',vPlayersServer.NbrPlayersInParty,'--- N° du joueur dans la partie : ',vCurrentPlayerInSession);
 
-    let PilsColorPlayer;
-// XXXXXXXXXX  Corriger le nbre de joueurs --> 4
-    if (vNumJoueur == 400){
-        console.log('Nbre max de joueurs atteint');
-    } else {
-        vNumJoueur++;
-        console.log('vNumJoueur : ',vNumJoueur);
+    webSocketConnection.emit('callLoginForm');                                           // Demande au client d'afficher le formulaire de saisie du login
+    webSocketConnection.on('playerLoginData',function(playerLoginData){                  // Réception des infos de Login du futur joueur envoyées par le client
+        if (vPlayersServer.reachPlayerInDatabase(playerLoginData)){                            // Recherche du joueur dans la base et éventuellement ajout de celui-ci
+            if (!vPlayersServer.playerAlreadyInParty(playerLoginData, webSocketConnection)){   // Vérification que le joueur n'est pas déjà dans la partie dans une autre session
+                if (!vPlayersServer.partyFull(webSocketConnection)){                           // Vérification de place encore disponible dans la partie
+                    if (!vPlayersServer.partyStarted(webSocketConnection, vGameStarted)){      // Vérification que la partie n'a pas déja commencé
+                        if (vPlayersServer.selectSlotInParty(playerLoginData)){                // Recherche et selection du 1er slot libre dans la partie
+                            vCurrentPlayerInSession = vPlayersServer.currentPlayer;            // Le candidat-joueur passe au statut de joueur courant validé
+                            console.log('Connection  Après : Nombre de connectés : ', vNbrConnectionsAlive,'--- Nombre de joueurs en jeu : ',vPlayersServer.NbrPlayersInParty,'--- N° du joueur dans la partie : ',vCurrentPlayerInSession);
+                            console.log('********************************************************************************************************************')
+                            
+                            // Alimentation de la structure de data coté serveur recensant les données de tous les joueurs admis :
+                            //  Stockage de l'Id du WebSocket pour communiquer individuellement
+                            vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].webSocketID = webSocketConnection.id; 
+                            
+                            // Génère le jeu du joueur et le transmet au client et à tous les joueurs déjà connectés dans la partie
+                            vPlayersServer.genPlayerDeck(vCurrentPlayerInSession, webSocketConnection, socketIo);   
+                            if (!vGameStarted){                                                              // Si la partie n'est pas déjà lancée
+                                vPlayersServer.searchMasterOfGame(socketIo);
+                            }
+                            webSocketConnection.on('startGame',function(pMyPlayer){
+                                vGameStarted = true;
+                                vPlayersServer.startGame(pMyPlayer,socketIo);
+                            });
+                            webSocketConnection.on('broadcastTokenCoord',function(pMyToken){
+                                vPlayersServer.broadcastTokenCoord(pMyToken, socketIo);
+                            });
+                            webSocketConnection.on('broadcastNextPilsToEat',function(pMyPils){
+                                vPlayersServer.broadcastNextPilsToEat(pMyPils, socketIo);
+                            });
+                            webSocketConnection.on('broadcastEatedPils',function(pMyPils){
+                                vPlayersServer.broadcastEatedPils(pMyPils, socketIo);
+                            });
+                            webSocketConnection.on('stopGame',function(pMyClient){
+                                vPlayersServer.stopGame(pMyClient,socketIo);
+                            });
+                        } //    selectSlotInParty
+                    } //    partyStarted
+                } //    partyFull
+            }  //    playerAlreadyInParty
+        }; //   reachPlayerInDatabase
+    }); //  playerLoginData
+    
+    
+                
+    webSocketConnection.on('disconnect', function() {
+console.log('disconnect avant : Nombre de connectés : ', vNbrConnectionsAlive,'--- Nombre de joueurs en jeu : ',vPlayersServer.NbrPlayersInParty,'--- N° du joueur de la session en cours de deconnexion : ',vCurrentPlayerInSession);
+console.log('000 Je me déconnecte : ',vCurrentPlayerInSession)
+        if (vCurrentPlayerInSession > -1){                                              // S'il s'agit d'un joueur qui était connecté dans une partie
+console.log('001 Je me déconnecte : ',vCurrentPlayerInSession)
+console.log('disconnect Efface joueur Avant - vPlayersServer.objectPlayer["player"+vCurrentPlayerInSession].pseudo : ',vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].pseudo,' --- vPlayersServer.currentPlayer : ',vPlayersServer.currentPlayer);
+            vPlayersServer.deletePlayerDeck(vCurrentPlayerInSession, socketIo);               // Efface le jeu du joueur et le transmet au client et à tous les joueurs déjà connectés
+            vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].pseudo = '';
+            vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].pils = {};
+            vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].webSocketID = null; // On supprime l'id de connection stocké dans l'objet joueurs
+            vPlayersServer.currentPlayer=-1;                                                  // Ré-initialisation du joueur courant
+            vPlayersServer.NbrPlayersInParty--;                                               // Décrémentation du nombre de joueurs dans la partie
 
-        let pDataScreenSize;
-        websocketConnection.emit('askScreenSize',pDataScreenSize);
-        websocketConnection.on('receiveScreenSize',function(pDataScreenSize){
-console.log('Screen Sizes recu coté serveur: ',pDataScreenSize.vScreenHeight,'***',pDataScreenSize.vScreenWidth);
+            if (vPlayersServer.NbrPlayersInParty === 0){                                      // S'il n'y a plus de joueurs encore dans la partie, la partie s'arrête
+                vGameStarted = false;
+            }
+console.log('disconnect Efface joueur Après - vPlayersServer.objectPlayer["player"+vCurrentPlayerInSession].pseudo : ',vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].pseudo,' --- vPlayersServer.currentPlayer : ',vPlayersServer.currentPlayer);        
 
-        initPilsDeck(vNumJoueur, pDataScreenSize);
+        if (!vGameStarted){                                                              // Si la partie n'est pas déjà lancée
+            if (vCurrentPlayerInSession === vPlayersServer.numPlayerMasterOfGame){             // Si le joueur qui quitte la partie est le Maître du jeu...
+                    vPlayersServer.numPlayerMasterOfGame = -1;
+console.log('Changement de maitre de jeu - AncienMaitredeJeu : ',vCurrentPlayerInSession,'--- vPlayersServer.numPlayerMasterOfGame : ',vPlayersServer.numPlayerMasterOfGame);
+                    vPlayersServer.searchMasterOfGame(socketIo);                               // ... on désigne le joueur suivant comme Maître du jeu
+console.log('Changement de maitre de jeu - NouveauMaitredeJeu : ',vPlayersServer.numPlayerMasterOfGame);
+                }
+            }
+        }
+        vCurrentPlayerInSession = -1
+        vNbrConnectionsAlive--;
+            
+console.log('disconnect après : Nombre de connectés : ', vNbrConnectionsAlive,'--- Nombre de joueurs en jeu : ',vPlayersServer.NbrPlayersInParty,'--- N° du joueur de la session en cours de deconnexion : ',vCurrentPlayerInSession);
+console.log('=================================================================================================================');
+    });
 
-        websocketConnection.emit('drawPils',vPilules);
-        });
 
-        // let square = 
-        // {
+});
+
+
+
+
+
+
+
+
+    // let square = 
+    // {
         //     top: '0px',
         //     left: '0px',
         //     id: Math.round(Math.random() * 10000) + (new Date()).getTime() + '-carre',
         //     backgroundColor: '#' + Math.floor(Math.random()*16777215).toString(16)
         // };
-    
+        
+        // // Que faire en cas de réception des coordonnées de la souris.
+        // webSocketConnection.on('mouseCoordinates', function (mouse) {
+            
+            //     // Ici on peut utiliser l'objet squares pour determiner sur le mouvement est permis ou pas.
+            
+            //     square.top = (mouse.top - (parseFloat(square.top) / 2)) + 'px';
+            //     square.left = (mouse.left - (parseFloat(square.left) / 2)) + 'px';
+            
+            //     // Envoi à tous les client d'une demande de mise à jour du carré
+            //     socketIo.emit('drawSquare', square);
+            // });
+            
+            // // La déconnexion on envoie l'objet contenant les méta données du carré au front-end pour qu'il soit supprimé.
+            // webSocketConnection.on('disconnect', function(){
+                //     // On supprime le carré stocké dans l'objet squares
+                //     delete squares[square.id];
+                //     // On envoie les méta données du carré au front pour suppression du DOM
+                //     socketIo.emit('removeSquare', square);
+                // });
+                // }
+                // }XXXX
 
 
-    // // Que faire en cas de réception des coordonnées de la souris.
-    // websocketConnection.on('mouseCoordinates', function (mouse) {
 
-    //     // Ici on peut utiliser l'objet squares pour determiner sur le mouvement est permis ou pas.
 
-    //     square.top = (mouse.top - (parseFloat(square.top) / 2)) + 'px';
-    //     square.left = (mouse.left - (parseFloat(square.left) / 2)) + 'px';
 
-    //     // Envoi à tous les client d'une demande de mise à jour du carré
-    //     socketIo.emit('drawSquare', square);
-    // });
-
-    // // La déconnexion on envoie l'objet contenant les méta données du carré au front-end pour qu'il soit supprimé.
-    // websocketConnection.on('disconnect', function(){
-    //     // On supprime le carré stocké dans l'objet squares
-    //     delete squares[square.id];
-    //     // On envoie les méta données du carré au front pour suppression du DOM
-    //     socketIo.emit('removeSquare', square);
-    // });
-    }
-});
 
 
 /**
 * Partie Websocket du serveur
 */
-
-
-
-
-
 // var checkDBConnect = function(){
-//     mongodb.MongoClient.connect('mongodb://localhost:27017/TourDeFrance', function(error, client) {
+//     mongoDB.MongoClient.connect('mongodb://localhost:27017/TourDeFrance', function(error, client) {
 //         if (!error){
 //     console.log('2 ajoutHTML : ',ajoutHTML);
-//     let joueurs = client.db('TourDeFrance').collection('joueurs');
-//     joueurs.find({}).toArray(function(error, documents){
+//     let PlayersServer = client.db('TourDeFrance').collection('PlayersServer');
+//     PlayersServer.find({}).toArray(function(error, documents){
 //         documents.forEach(function(objetMessage){
 //                     ajoutHTML = '<p><strong>' + objetMessage.username + '</strong>:</p><p><i>' + objetMessage.message + ' </i></p>' + ajoutHTML;
 //             });
-            
 //             // ajoutHTML contient un texte en HTML à ajouter à exemple3.html
 //             let responseBodyToHTMLString = responseBody.toString('utf8');
 // console.log('3 ajoutHTML : ',ajoutHTML);
-//                 responseBodyToHTMLString = responseBodyToHTMLString.replace('<div id="joueurs"></div>', '<div id="joueurs">' + ajoutHTML + '</div>');
+//                 responseBodyToHTMLString = responseBodyToHTMLString.replace('<div id="PlayersServer"></div>', '<div id="PlayersServer">' + ajoutHTML + '</div>');
 //                 responseBody = new Buffer(responseBodyToHTMLString);
 
 //                 response.writeHead(statusCode, {
@@ -225,6 +210,8 @@ console.log('Screen Sizes recu coté serveur: ',pDataScreenSize.vScreenHeight,'*
 //         }
 //     });
 // }
+
+
 
 
 
@@ -304,31 +291,11 @@ console.log('Screen Sizes recu coté serveur: ',pDataScreenSize.vScreenHeight,'*
 //           reponseHttp.write(contenuDuFichier, function() {
 //             reponseHttp.end();
 //           });
-  
 //         }
-  
 //       });
 //     });
-  
 //   });
-  
 //   serveurWeb.listen(1337);
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -460,7 +427,7 @@ console.log('Screen Sizes recu coté serveur: ',pDataScreenSize.vScreenHeight,'*
 // let socketIo = new SocketIo(httpServer);
 // // Objet vide pour accueillir les nouveaux squares.
 // let squares = {};
-// socketIo.on('connection', function(websocketConnection){
+// socketIo.on('connection', function(webSocketConnection){
 //   console.log('Connexion établie en back');
 //   let square = {
 //    x: '0px',
@@ -474,9 +441,9 @@ console.log('Screen Sizes recu coté serveur: ',pDataScreenSize.vScreenHeight,'*
 //   squares[square.id] = square;
 //   console.log('Squares : ', squares);
 //   // Envoi du square coté client.
-//   websocketConnection.emit('drawSquare', square);
+//   webSocketConnection.emit('drawSquare', square);
   
-//   websocketConnection.on('movingMouse', function(mouse){
+//   webSocketConnection.on('movingMouse', function(mouse){
 //     console.log('mouse reçu au back : ', mouse);
 //     //collisionDetection(square, food);
 //     movingSquare(square, mouse);
@@ -484,12 +451,12 @@ console.log('Screen Sizes recu coté serveur: ',pDataScreenSize.vScreenHeight,'*
 //     socketIo.emit('drawSquare', square);
 //  });
  
-//  websocketConnection.on('foodApparition', function(foodPosition){
+//  webSocketConnection.on('foodApparition', function(foodPosition){
 //   console.log('Food Position :', foodPosition);
-//   websocketConnection.broadcast.emit('foodApparition', foodPosition);
+//   webSocketConnection.broadcast.emit('foodApparition', foodPosition);
 //  });
 //  // Si il y a une déconnexion on envoi l'objet contenant les données du square en front
-//  websocketConnection.on('disconnect', function(){
+//  webSocketConnection.on('disconnect', function(){
 //   // On supprime le square stocké dans l'objet squares
 //   delete squares[square.id];
 //   // On envoi les donnée du square en front pour le supprimer du DOM.
@@ -502,4 +469,32 @@ console.log('Screen Sizes recu coté serveur: ',pDataScreenSize.vScreenHeight,'*
 // Zone de message
 
 
-// Envoyer un message à @Didz Bilel 
+
+
+// SURE: Simplement,
+// C'est ce dont vous avez besoin:
+//  io.to(socket.id).emit("event", data); 
+// Chaque fois qu'un utilisateur se joigne au serveur, les détails du socket seront générés, y compris ID. 
+//Ceci est l'ID qui aide vraiment à envoyer un message à des personnes particulières.
+// D'abord, nous devons stocker tous les socket.ids en ordre,
+//  var people={}; people[name] = socket.id; 
+// Ici le nom est le nom du destinataire. Exemple:
+//  people["ccccc"]=2387423cjhgfwerwer23; 
+// Donc, maintenant, nous pouvons obtenir ce socket.id avec le nom de réception chaque fois que nous envoyons un message:
+// Pour cela, nous devons connaître le nom de recievern. Vous devez émettre un nom de réception sur le serveur.
+// La dernière chose est:
+//   socket.on('chat message', function(data){ io.to(people[data.reciever]).emit('chat message', data.msg); }); 
+// J'espère que ça va bien pour toi. Bonne chance
+
+// Vous pouvez vous référer aux chambres socket.io. Lorsque vous avez saisi une prise murale – vous pouvez l'associer à la chambre nommée, par exemple "utilisateur. # {Userid}".
+// Après cela, vous pouvez envoyer un message privé à n'importe quel client par un nom pratique, par exemple:
+//     Io.sockets.in ('user.125'). Émettent ('new_message', {text: "Hello world"})
+// En opération ci-dessus, nous envoyons "new_message" à l'utilisateur "125".
+// Merci.
+// Dans un projet de notre société, nous utilisons l'approche «chambres» et son nom est une combinaison d'identifiants utilisateur de tous les utilisateurs dans une conversation en tant qu'identifiant unique (notre mise en œuvre ressemble plus à Facebook messenger), par exemple:
+// | Id | Nom | 1 | Scott | 2 | Susan
+// Le nom de la "pièce" sera "1-2" (les identifiants sont commandés Asc.) Et le débranchement socket.io nettoie automatiquement la pièce
+// De cette façon, vous envoyez des messages uniquement à cette salle et uniquement aux utilisateurs en ligne (connectés) (moins de paquets envoyés dans l'ensemble du serveur).
+
+
+

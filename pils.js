@@ -15,10 +15,11 @@
 // *************************************************************************
 
 module.exports = function Pils() {             // Fonction constructeur de Sprite "Pils"
-    this.nonMangee= true;
+    this.mangee= false;
     this.left;
     this.top;
     this.orientation;
+    this.zIndex;
 
     // --------------------------------------------------------------
     // Génération d'un nombre aléatoire entre [pValInf,pValSup]
@@ -30,14 +31,11 @@ module.exports = function Pils() {             // Fonction constructeur de Sprit
     // Définition des caratéristiques des pilules (couleurs, position, orientation)
     // --------------------------------------------------------------
     Pils.prototype.initVar = function(pDataScreenSize){    
-    // XXXXXXXXXX
-    // this.sprite.id= Math.random()*10000<<0;
-    // this.sprite.innerHTML= vMonCarre.id;      
-
         // calcul de positions aléatoires sous contraintes (pas aux bords de l'ecran et jamais au-dessus du Control-Panel)
-        this.left= this.random(10,Math.round(pDataScreenSize.vScreenWidth - (pDataScreenSize.vScreenWidth /( 100 / (parseInt('8%')) + 10))))+'px';
-        this.top = this.random(124,Math.round(pDataScreenSize.vScreenHeight - (pDataScreenSize.vScreenHeight / (100 / (parseInt('8%'))))))+'px';
+        this.left= this.random(10,Math.round(pDataScreenSize.vScreenWidth - 80))+'px';
+        this.top = this.random(200,Math.round(pDataScreenSize.vScreenHeight - 50))+'px';
         this.orientation=(this.random(0,360));
+        this.zIndex=this.random(1,999999);
     };
     // --------------------------------------------------------------
     //  Animation qui met en évidence la prochaine target à toucher
