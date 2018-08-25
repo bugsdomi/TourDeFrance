@@ -6,6 +6,7 @@ Auteur :
 - DIWJS08 - Développeur FullStack Javascript
 
 1) Procédure d'installation
+
 a)PRE-REQUIS : 
     Les logiciels suivants doivent avoir été installés au préalable sur votre machine (Voir la documentation officielle de chacun) : 
     - "npm"
