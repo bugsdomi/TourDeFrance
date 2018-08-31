@@ -92,6 +92,7 @@ window.addEventListener('DOMContentLoaded', function(){
     // du joueurs et de son avatar
     // -------------------------------------------------------------------------
     webSocketConnection.on('drawPils', function(pPlayerData){
+        
         var vCurrentPlayer = 'player'+pPlayerData.currentPlayer; 
 
         vPlayersClient.indexCurrentPlayer = vCurrentPlayer; 
@@ -105,6 +106,8 @@ window.addEventListener('DOMContentLoaded', function(){
         vPlayersClient.maxPlayers = pPlayerData.maxPlayers; 
         vPlayersClient.maxPilsByPlayer = pPlayerData.maxPilsByPlayer; 
         vPlayersClient[vCurrentPlayer].pseudo= pPlayerData.objectPlayer[vCurrentPlayer].pseudo;
+        vPlayersClient[vCurrentPlayer].totalPlayedTime= pPlayerData.objectPlayer[vCurrentPlayer].totalPlayedTime;
+
         vPlayersClient[vCurrentPlayer].couleur= pPlayerData.objectPlayer[vCurrentPlayer].couleur;
         vPlayersClient[vCurrentPlayer].avatar= pPlayerData.objectPlayer[vCurrentPlayer].avatar;
         vPlayersClient[vCurrentPlayer].pilsNonMangeesRestantes = pPlayerData.maxPilsByPlayer;
@@ -184,10 +187,22 @@ window.addEventListener('DOMContentLoaded', function(){
     webSocketConnection.on('hideEatedPils', function(pMyPils){ 
         vPlayersClient.hideEatedPils(pMyPils);
     });
+
+    // --------------------------------------------------------------
+    // Ajoute 1 seconde au temps total du joueur
+    // --------------------------------------------------------------
+    webSocketConnection.on('addOneSecond', function(){  
+        vPlayersClient.addOneSecond(webSocketConnection);
+    });
+    // --------------------------------------------------------------
+    // Met à jour le temps passé sur le client courant
+    // --------------------------------------------------------------
+    webSocketConnection.on('refreshElapsedTime', function(pMyTotalTime){  
+        vPlayersClient.refreshElapsedTime(pMyTotalTime);
+    });
     // -------------------------------------------------------------------------
     // Envoi des infos de login du client lorsque la saisie est validée syntaxiquement 
-    // par appel des checks provoqués directement par les champs par évenement de 
-    // sortie du champ, et la Form par la validation globale de celle-ci
+    // par appel du check provoqué la Form par la validation globale de celle-ci
     // -------------------------------------------------------------------------
     vLoginForm = window.document.getElementById('idLoginForm');
     vLoginForm.addEventListener('submit', function (event){ 

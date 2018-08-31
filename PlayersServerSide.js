@@ -23,55 +23,76 @@ let vDBMgr = new DBMgr();       // Instanciation de l'objet descrivant l'ensembl
 
 const Pils = require('./pils');
 
+module.exports = function PlayersServer(){  // Fonction constructeur exportée
 
+    this.playerRecord = 
+    {
+        pseudo: '',                         // Pseudo
+        nbrWonParties : 0,                  // Nbre de parties gagnées
+        nbrLostParties : 0,                 // Nbre de parties perdues
+        totalPlayedTime : 0,                // temps total de jeu
+    }
 
-module.exports = function PlayersServer(){        // Fonction constructeur exportée
     this.NbrPlayersInParty = 0;             // Nombre de joueurs en jeu, c.a.d. de candidats-joueurs validés et acceptés dans la partie (0) ==> Aucun joueur en jeu
     this.currentPlayer = -1;                // Joueur en cours d'admission dans la partie 
     this.isItMe = false;                    // Flag permetant de savoir si le joueur courant qui va être communiqué aux clients est moi ou non
     this.numPlayerMasterOfGame = -1;        // Détermine si ce joueur sera la maître de la partie, c.a.d., celui qui declenche le jeu
-    this.maxPilsByPlayer = 5;              // Nombre de pilules par joueurs
+    this.maxPilsByPlayer = 50;               // Nombre de pilules par joueurs
     this.maxPlayers = 4;                    // Nombre maximum de joueurs
+
+
     this.objectPlayer =
-        {   
-            player0 :
-            {
-                webSocketID : null,                                 // Identifiant interne du WebSocket qui va servir pour les Msg envoyé à un client individuel
-                pseudo : '',                                        // Pseudo du joueur dans la partie
-                couleur : 'blue',                                   // Couleur dominante du joueur
-                fichier : "static/images/pil-blue-white-1.png",     // Image des pilules associées au joueur
-                avatar : "static/images/Armstrong.png",             // Avatar du joueur
-                pils: {},                                           // Jeu de pilules affectées au joueur            
-            },
-            player1 :
-            {
-                webSocketID : null,
-                pseudo : '',
-                couleur : 'red',
-                fichier : "static/images/pil-red-white-1.png",
-                avatar : "static/images/Virenque.png",                           
-                pils: {},
-            },
-            player2 : 
-            {
-                webSocketID : null,
-                pseudo : '',
-                couleur : 'yellow',
-                fichier : "static/images/pil-yellow-white-1.png",
-                avatar : "static/images/Jalabert.png",                           
-                pils: {},
-            },
-            player3 : 
-            {
-                webSocketID : null,
-                pseudo : '',
-                couleur : 'green',
-                fichier : "static/images/pil-green-white-1.png",
-                avatar : "static/images/Contador.png",                           
-                pils: {},
-            }
-            // cyan, green, orange, redBlack, red, violet, black, white, yellow             // peut-être pour un futur usage
+    {   
+        player0 :
+        {
+            webSocketID : null,                                 // Identifiant interne du WebSocket qui va servir pour les Msg envoyé à un client individuel
+            pseudo : '',                                        // Pseudo du joueur dans la partie
+            nbrWonParties : 0,                                  // Nbre de parties gagnées
+            nbrLostParties : 0,                                 // Nbre de parties perdues
+            totalPlayedTime : 0,                                // Temps total de jeu
+            couleur : 'blue',                                   // Couleur dominante du joueur
+            fichier : "static/images/pil-blue-white-1.png",     // Image des pilules associées au joueur
+            avatar : "static/images/Armstrong.png",             // Avatar du joueur
+            pils: {},                                           // Jeu de pilules affectées au joueur            
+        },
+        player1 :
+        {
+            webSocketID : null,
+            pseudo : '',
+            nbrWonParties : 0,                                  // Nbre de parties gagnées
+            nbrLostParties : 0,                                 // Nbre de parties perdues
+            totalPlayedTime : 0,                                // Temps total de jeu
+            couleur : 'red',
+            fichier : "static/images/pil-red-white-1.png",
+            avatar : "static/images/Virenque.png",                           
+            pils: {},
+        },
+        player2 : 
+        {
+            webSocketID : null,
+            pseudo : '',
+            nbrWonParties : 0,                                  // Nbre de parties gagnées
+            nbrLostParties : 0,                                 // Nbre de parties perdues
+            totalPlayedTime : 0,                                // Temps total de jeu
+            couleur : 'yellow',
+            fichier : "static/images/pil-yellow-white-1.png",
+            avatar : "static/images/Jalabert.png",                           
+            pils: {},
+        },
+        player3 : 
+        {
+            webSocketID : null,
+            pseudo : '',
+            nbrWonParties : 0,                                  // Nbre de parties gagnées
+            nbrLostParties : 0,                                 // Nbre de parties perdues
+            totalPlayedTime : 0,                                // Temps total de jeu
+            couleur : 'green',
+            fichier : "static/images/pil-green-white-1.png",
+            avatar : "static/images/Contador.png",                           
+            pils: {},
         }
+        // cyan, green, orange, redBlack, red, violet, black, white, yellow             // peut-être pour un futur usage
+    }
     // -------------------------------------------------------------------------
     // A la détection de la connexion,on initialise la partie player sur le client :
     // - Vérification du nombre de joueurs (Ok, si <= 4)
@@ -107,13 +128,17 @@ module.exports = function PlayersServer(){        // Fonction constructeur expor
     // (au format brut) dans la BDD
     // ------------------------------------------------------------
     PlayersServer.prototype.addPlayerInDatabase = function(pPlayerLoginData){
-        let playerRecord = 
+        this.playerRecord = 
         {
             pseudo: pPlayerLoginData.pseudo,
-            score : 0,
-            timestamp : (new Date()).getTime(),
+            nbrWonParties : 0,                  // Nbre de parties gagnées
+            nbrLostParties : 0,                 // Nbre de parties perdues
+            totalPlayedTime : 0,                // temps total de jeu
         }
-        vDBMgr.playerCollection.insert(playerRecord);
+
+console.log('addPlayerInDatabase - playerRecord : ',this.playerRecord)
+
+        vDBMgr.playerCollection.insert(this.playerRecord);
     }
     // ------------------------------------------------------------
     // Vérification des données du joueur (Pseudo) :
@@ -132,15 +157,18 @@ module.exports = function PlayersServer(){        // Fonction constructeur expor
             } else {
                 if (!documents.length){
                     this.addPlayerInDatabase(pPlayerLoginData);                 // Si le profil du joueur n'a pas été trouvé (pas de documents), on l'ajoute à la BDD
-                }
+                } else {
+                    this.playerRecord = documents[0];
+console.log('000 - reachPlayerInDatabase - playerRecord : ',this.playerRecord)
+
+}
             }
         });
         return true
     }
     // ------------------------------------------------------------
-    // Vérification des données du joueur (Pseudo) :
-    // - Soit il existe dans la BDD
-    // - Soit il n'existe pas dans la BDD, auquel cas, on le crée
+    // Vérification que le joueur n'est pas déjà dans la partie 
+    // mais sous une autre session
     // ------------------------------------------------------------
     PlayersServer.prototype.playerAlreadyInParty = function(pPlayerLoginData, pWebSocketConnection){
         let i=-1;   
@@ -155,9 +183,8 @@ module.exports = function PlayersServer(){        // Fonction constructeur expor
         return found;
     }
     // ------------------------------------------------------------
-    // Recherche de la 1ere place dispo dans la partie
-    // S'il y en a une, ce qui est normalement le cas à ce stade, 
-    // on lui affecte l'indice de ce slot libre
+    // Vérification qqu'il y a au moins encore une place de dispo 
+    // dans la partie
     // ------------------------------------------------------------
     PlayersServer.prototype.partyFull = function(pWebSocketConnection){
         if (this.NbrPlayersInParty === this.maxPlayers){  
@@ -179,6 +206,10 @@ module.exports = function PlayersServer(){        // Fonction constructeur expor
             i++;
             if (!this.objectPlayer['player'+i].pseudo.length){
                 this.objectPlayer['player'+i].pseudo = pPlayerLoginData.pseudo;
+                // this.objectPlayer['player'+i].pseudo = this.playerRecord.pseudo;
+                this.objectPlayer['player'+i].nbrWonParties = this.playerRecord.nbrWonParties;                        // Nbre de parties gagnées
+                this.objectPlayer['player'+i].nbrLostParties = this.playerRecord.nbrLostParties;                      // Nbre de parties perdues
+                this.objectPlayer['player'+i].totalPlayedTime = this.playerRecord.totalPlayedTime;                    // Temps total de jeu
                 this.currentPlayer = i;
                 this.NbrPlayersInParty++;
                 found=true;
@@ -193,7 +224,6 @@ module.exports = function PlayersServer(){        // Fonction constructeur expor
     // d'afficher le deck du joueur qui vient d'être admis à jouer
     // ------------------------------------------------------------
     PlayersServer.prototype.sendDataPlayerToClient = function(pWebSocketConnection, pSocketIo){
-
         pWebSocketConnection.emit('drawGameBackground');            // Affichage du plateau de jeu, de la barre des scores, et des joueurs
         
         for (let i=0; i <= this.maxPlayers-1; i++){
@@ -282,24 +312,42 @@ module.exports = function PlayersServer(){        // Fonction constructeur expor
     // et de commencer la collecte des Pils
     // -------------------------------------------------------------------------
     PlayersServer.prototype.startGame = function(pMyClientPlayer, pSocketIo){
-        console.log('Partie démarrée par',this.objectPlayer[pMyClientPlayer].pseudo);
-
         for (let i=0; i <= this.maxPlayers-1; i++){
-            if (this.objectPlayer['player'+i].pseudo.length){               // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)
+            if (this.objectPlayer['player'+i].pseudo.length){                                       // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)
                 pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('playAndEatPils');     // Envoi à chaque client d'un message individuel pour effacer mes pilules
             }
         }
     }
     // -------------------------------------------------------------------------
     // La partie est terminée, un vainqueur a été désigné
-    // Le serveur envoie la ntification de défaite à tous les joueurs 
+    // Stockage des resultats "Vainqueur / perdant" et accumulation du temps de 
+    // jeu au temps de jeu total du joueur
+    // Le serveur envoie la notification de défaite à tous les autres joueurs 
     // -------------------------------------------------------------------------
-        PlayersServer.prototype.stopGame = function(pMyClient, pSocketIo){
-        console.log('Partie gagnée par',this.objectPlayer[pMyClient.monClientPlayer].pseudo);
+    PlayersServer.prototype.stopGame = function(pMyClient, pSocketIo){
+
+console.log('stopGame - pMyClient : ',pMyClient)
+console.log('stopGame - pMyClient : ',this)
+// monClientPlayer : this.myClientPlayer,
+// monNumPlayer : this.myNumPlayer,
+// monTotalTime : this[this.myClientPlayer].totalPlayedTime,
+// monVainqueur : this[this.myClientPlayer].vainqueur,
+
+// pseudo : '',                                        // Pseudo du joueur dans la partie
+// nbrWonParties : 0,                                  // Nbre de parties gagnées
+// nbrLostParties : 0,                                 // Nbre de parties perdues
+// totalPlayedTime : 0,                                // Temps total de jeu
 
         this.numPlayerMasterOfGame = -1;
         for (let i=0; i <= this.maxPlayers-1; i++){
             if (this.objectPlayer['player'+i].pseudo.length){               // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)
+
+// vDBMgr.playerCollection.update({pseudo : this.objectPlayer['player'+i].pseudo}, {$set: {}}
+
+
+// { "_id" : ObjectId("5b816f2e9e092c560c77fe61"), "pseudo" : "Alberty", "nbrWonParties" : 0, "nbrLostParties" : 0, "totalPlayedTime" : 0 }
+// pColJoueur.update({username:joueurs['joueur'+pCurrentPlayer].username}, {$set:{duree:elapsedTime}});        
+
                 if (i !== pMyClient.monNumPlayer){                          // Je n affiche pas le message de defaite sur mon propre écran puisque j'ai gagné
                     pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('youLoose');     // Envoi à chaque client d'un message pour leur notifier la défaite
                 }
@@ -331,14 +379,32 @@ module.exports = function PlayersServer(){        // Fonction constructeur expor
         }
     }
     // -------------------------------------------------------------------------
-    // Actualise et met en évidence la nouvelle Pils cible sur les autres clients
+    // Actualise et met en évidence sur les clients la Pils qui vient d être mangée 
     // -------------------------------------------------------------------------
     PlayersServer.prototype.broadcastEatedPils = function(pMyPils, pSocketIo){
         for (let i=0; i <= this.maxPlayers-1; i++){
-            if (this.objectPlayer['player'+i].pseudo.length){               // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)            
-                // if (i !== pMyPils.monNumPlayer){                            // Je ne reaffiche pas sur mon propre Pils quia été mangée
-                    pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('hideEatedPils',pMyPils);     // Envoi à chaque joueur de la disparition de la derniere Pils mangée
-                // }
+            if (this.objectPlayer['player'+i].pseudo.length){                                              // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)            
+                pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('hideEatedPils',pMyPils);     // Envoi à chaque joueur de la disparition de la derniere Pils mangée
+            }
+        }
+    }
+    // -------------------------------------------------------------------------
+    // Le timer event et envoyé à tous les joueurs dans la partie par le serveur
+    // -------------------------------------------------------------------------
+    PlayersServer.prototype.addOneSecond = function(pSocketIo){
+        for (let i=0; i <= this.maxPlayers-1; i++){
+            if (this.objectPlayer['player'+i].pseudo.length){                                         // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)            
+                pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('addOneSecond');         // Envoi à chaque joueur de la disparition de la derniere Pils mangée
+            }
+        }
+    }
+    // -------------------------------------------------------------------------
+    // Actualise et le temps total de jeu de chaque joueur sur les autres clients
+    // -------------------------------------------------------------------------
+    PlayersServer.prototype.broadcastTotalTime = function(pMyTotalTime, pSocketIo){
+        for (let i=0; i <= this.maxPlayers-1; i++){
+            if (this.objectPlayer['player'+i].pseudo.length){                                           // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)            
+                    pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('refreshElapsedTime',pMyTotalTime);     // Envoi à chaque joueur la nouvelle Pils a manger
             }
         }
     }

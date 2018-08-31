@@ -316,9 +316,10 @@ form input:invalid{
     color : ivory;
     font-family : "Faster One", Georgia, cursive, serif, sans-serif;
     font-style : normal;
-    font-size : 1.4em;
+    /* font-size : 1.4em; */
+    font-size : 1.3em;
     text-align : center;
-    line-height : 1.5;
+    line-height : 1.7;
 }
 
 .containerAvatarToken{

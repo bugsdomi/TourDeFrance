@@ -8,6 +8,7 @@ const PlayersServer = require('./PlayersServerSide');
 let vPlayersServer = new PlayersServer();   // Instanciation de l'objet descrivant l'ensemble des joueurs et les méthodes de gestion de ces joueurs
 let vNbrConnectionsAlive=0;                 // Nombre total de connexions en cours sur ce serveur     !!! ATTENTION !!! Il ne's'agit pas encore de joueurs valides , juste de connexions
 let vGameStarted = false;                   // Indicateur de lancement de la partie
+let refreshElapsedTimeInterval = undefined;        // Variable du SetInterval pour pouvoir le stopper proprement
 
 // -------------------------------------------------------------------------
 // Verification de l'accessibilité de la base - Je ne le fais qu'au debut du jeu, 
@@ -52,14 +53,15 @@ socketIo.on('connection', function(webSocketConnection){                        
 console.log('--------------------------------------------------------------------------------------------------------------------')
 console.log('Connection  Avant : Nombre de connectés : ', vNbrConnectionsAlive,'--- Nombre de joueurs en jeu : ',vPlayersServer.NbrPlayersInParty,'--- N° du joueur dans la partie : ',vCurrentPlayerInSession);
 
-    webSocketConnection.emit('callLoginForm');                                           // Demande au client d'afficher le formulaire de saisie du login
-    webSocketConnection.on('playerLoginData',function(playerLoginData){                  // Réception des infos de Login du futur joueur envoyées par le client
-        if (vPlayersServer.reachPlayerInDatabase(playerLoginData)){                            // Recherche du joueur dans la base et éventuellement ajout de celui-ci
-            if (!vPlayersServer.playerAlreadyInParty(playerLoginData, webSocketConnection)){   // Vérification que le joueur n'est pas déjà dans la partie dans une autre session
-                if (!vPlayersServer.partyFull(webSocketConnection)){                           // Vérification de place encore disponible dans la partie
-                    if (!vPlayersServer.partyStarted(webSocketConnection, vGameStarted)){      // Vérification que la partie n'a pas déja commencé
-                        if (vPlayersServer.selectSlotInParty(playerLoginData)){                // Recherche et selection du 1er slot libre dans la partie
-                            vCurrentPlayerInSession = vPlayersServer.currentPlayer;            // Le candidat-joueur passe au statut de joueur courant validé
+    webSocketConnection.emit('callLoginForm');                                            // Demande au client d'afficher le formulaire de saisie du login
+    webSocketConnection.on('playerLoginData',function(playerLoginData){                   // Réception des infos de Login du futur joueur envoyées par le client
+        if (!vPlayersServer.playerAlreadyInParty(playerLoginData, webSocketConnection)){   // Vérification que le joueur n'est pas déjà dans la partie dans une autre session
+            if (!vPlayersServer.partyFull(webSocketConnection)){                           // Vérification de place encore disponible dans la partie
+                if (!vPlayersServer.partyStarted(webSocketConnection, vGameStarted)){      // Vérification que la partie n'a pas déja commencé
+                    if (vPlayersServer.selectSlotInParty(playerLoginData)){                // Recherche et selection du 1er slot libre dans la partie
+                        vCurrentPlayerInSession = vPlayersServer.currentPlayer;            // Le candidat-joueur passe au statut de joueur courant validé
+
+                        if (vPlayersServer.reachPlayerInDatabase(playerLoginData)){                            // Recherche du joueur dans la base et éventuellement ajout de celui-ci
                             console.log('Connection  Après : Nombre de connectés : ', vNbrConnectionsAlive,'--- Nombre de joueurs en jeu : ',vPlayersServer.NbrPlayersInParty,'--- N° du joueur dans la partie : ',vCurrentPlayerInSession);
                             console.log('********************************************************************************************************************')
                             
@@ -73,6 +75,8 @@ console.log('Connection  Avant : Nombre de connectés : ', vNbrConnectionsAlive,
                                 vPlayersServer.searchMasterOfGame(socketIo);
                             }
                             webSocketConnection.on('startGame',function(pMyPlayer){
+                                refreshElapsedTimeInterval = setInterval(function(){
+                                    vPlayersServer.addOneSecond(socketIo)},1000);
                                 vGameStarted = true;
                                 vPlayersServer.startGame(pMyPlayer,socketIo);
                             });
@@ -85,23 +89,25 @@ console.log('Connection  Avant : Nombre de connectés : ', vNbrConnectionsAlive,
                             webSocketConnection.on('broadcastEatedPils',function(pMyPils){
                                 vPlayersServer.broadcastEatedPils(pMyPils, socketIo);
                             });
+                            webSocketConnection.on('broadcastTotalTime',function(vMyTotalTime){
+                                vPlayersServer.broadcastTotalTime(vMyTotalTime, socketIo);
+                            });
                             webSocketConnection.on('stopGame',function(pMyClient){
+                                clearInterval(refreshElapsedTimeInterval);              // Arrêt du chrono
                                 vPlayersServer.stopGame(pMyClient,socketIo);
                             });
-                        } //    selectSlotInParty
-                    } //    partyStarted
-                } //    partyFull
-            }  //    playerAlreadyInParty
-        }; //   reachPlayerInDatabase
+                        }; //   reachPlayerInDatabase
+                    } //    selectSlotInParty
+                } //    partyStarted
+            } //    partyFull
+        }  //    playerAlreadyInParty
     }); //  playerLoginData
     
     
                 
     webSocketConnection.on('disconnect', function() {
 console.log('disconnect avant : Nombre de connectés : ', vNbrConnectionsAlive,'--- Nombre de joueurs en jeu : ',vPlayersServer.NbrPlayersInParty,'--- N° du joueur de la session en cours de deconnexion : ',vCurrentPlayerInSession);
-console.log('000 Je me déconnecte : ',vCurrentPlayerInSession)
         if (vCurrentPlayerInSession > -1){                                              // S'il s'agit d'un joueur qui était connecté dans une partie
-console.log('001 Je me déconnecte : ',vCurrentPlayerInSession)
 console.log('disconnect Efface joueur Avant - vPlayersServer.objectPlayer["player"+vCurrentPlayerInSession].pseudo : ',vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].pseudo,' --- vPlayersServer.currentPlayer : ',vPlayersServer.currentPlayer);
             vPlayersServer.deletePlayerDeck(vCurrentPlayerInSession, socketIo);               // Efface le jeu du joueur et le transmet au client et à tous les joueurs déjà connectés
             vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].pseudo = '';
@@ -111,16 +117,15 @@ console.log('disconnect Efface joueur Avant - vPlayersServer.objectPlayer["playe
             vPlayersServer.NbrPlayersInParty--;                                               // Décrémentation du nombre de joueurs dans la partie
 
             if (vPlayersServer.NbrPlayersInParty === 0){                                      // S'il n'y a plus de joueurs encore dans la partie, la partie s'arrête
+                clearInterval(refreshElapsedTimeInterval);
                 vGameStarted = false;
             }
 console.log('disconnect Efface joueur Après - vPlayersServer.objectPlayer["player"+vCurrentPlayerInSession].pseudo : ',vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].pseudo,' --- vPlayersServer.currentPlayer : ',vPlayersServer.currentPlayer);        
 
-        if (!vGameStarted){                                                              // Si la partie n'est pas déjà lancée
+        if (!vGameStarted){                                                                    // Si la partie n'est pas déjà lancée
             if (vCurrentPlayerInSession === vPlayersServer.numPlayerMasterOfGame){             // Si le joueur qui quitte la partie est le Maître du jeu...
                     vPlayersServer.numPlayerMasterOfGame = -1;
-console.log('Changement de maitre de jeu - AncienMaitredeJeu : ',vCurrentPlayerInSession,'--- vPlayersServer.numPlayerMasterOfGame : ',vPlayersServer.numPlayerMasterOfGame);
                     vPlayersServer.searchMasterOfGame(socketIo);                               // ... on désigne le joueur suivant comme Maître du jeu
-console.log('Changement de maitre de jeu - NouveauMaitredeJeu : ',vPlayersServer.numPlayerMasterOfGame);
                 }
             }
         }

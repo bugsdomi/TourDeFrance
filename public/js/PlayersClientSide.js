@@ -3,17 +3,18 @@
 // pilules qui vont être générées pour le player
 // 4 joueurs maximum - 50 pilules pour chacun 
 // -------------------------------------------------------------------------
+
 function PlayersClient(){    
 // Les propriétés ci-dessous sont modifiables sans aucun problème
     this.precision = 30;                                // Distance minimum en pixels entre le centre du Jeton et le centre de la Pils pour determiner si elle est mangée (+ grand = +facile)
-    this. delayToreset = 10;                            // Délai en secondes accordé aux joueurs pour admirer, faire des Screen-Shots, etc..., avant de revenir à l'écran principal
+    this. delayToReset = 10;                            // Délai en secondes accordé aux joueurs pour admirer, faire des Screen-Shots, etc..., avant de revenir à l'écran principal
 
 // NE PAS MODIFIER Les propriétés ci-dessous !!!!
     this.currentPlayer = -1;                            // Joueur en train d etre traité sur ce client : CE N EST PAS OBLIGATOIREMENT le joueur de ce client
     this.indexCurrentPlayer = '';                       // Indice développé du joueur à afficher dans la session courante ('player0'...)
     this.maxPlayers = -1;
     this.maxPilsByPlayer = -1;
-    this.isItMe = false;                                // Flag permettaznt d'identifier le Joeur correspondant à ce client
+    this.isItMe = false;                                // Flag permettant d'identifier le Joueur correspondant à ce client
     this.nextPils = -1;                                 // Pils désignée pour être la prochaine à être mangée
     this.nextPilsX = -1;                                // Coordonnée X de la Pils désignée pour être la prochaine à être mangée (mémorisée à part pour eviter des calcules recurrents)
     this.nextPilsY = -1;                                // Coordonnée X de la Pils désignée pour être la prochaine à être mangée (mémorisée à part pour eviter des calcules recurrents)
@@ -24,10 +25,13 @@ function PlayersClient(){
     this.distance= -1;                                  // Stocke la distance calculée entre 2 (utilisée lors de la detection de la Pils mangée)
     this.vainqueurTrouve = false;                       // Flag permettant de determiner le vainqueur dès que le 1er joueur a mangé toutes ses pils 
     this.vAdviseBtn;                                    // Instance du bouton afin de pouvoir simuler son click de n'importe
-    
+    this.elapsedTime;                                   // Valeur du chrono du temps de la dernière partie
+
     this.player0 =
     {
         pseudo : '',                                     // Pseudo du joueur dans la partie
+        totalPlayedTime : 0,                             // Temps total de jeu
+        vainqueur : false,                               // Designe la vainqueur
         couleur : '',                                    // Couleur du joueur
         avatar : '',                                     // Avatar du joueur
         containerAvatarToken : undefined,                // Conteneur du jeton qui sera piloté par la souris
@@ -47,6 +51,8 @@ function PlayersClient(){
     this.player1 =
     {
         pseudo : '',                                     // Pseudo du joueur dans la partie
+        totalPlayedTime : 0,                             // Temps total de jeu
+        vainqueur : false,                               // Designe la vainqueur
         couleur : '',                                    // Couleur du joueur
         avatar : '',                                     // Avatar du joueur
         containerAvatarToken : undefined,                // Conteneur du jeton qui sera piloté par la souris
@@ -66,6 +72,8 @@ function PlayersClient(){
     this.player2 = 
     {
         pseudo : '',                                     // Pseudo du joueur dans la partie
+        totalPlayedTime : 0,                             // Temps total de jeu
+        vainqueur : false,                               // Designe la vainqueur
         couleur : '',                                    // Couleur du joueur
         avatar : '',                                     // Avatar du joueur
         containerAvatarToken : undefined,                // Conteneur du jeton qui sera piloté par la souris
@@ -85,6 +93,8 @@ function PlayersClient(){
     this.player3 = 
     {
         pseudo : '',                                     // Pseudo du joueur dans la partie
+        totalPlayedTime : 0,                             // Temps total de jeu
+        vainqueur : false,                               // Designe la vainqueur
         couleur : '',                                    // Couleur du joueur
         avatar : '',                                     // Avatar du joueur
         containerAvatarToken : undefined,                // Conteneur du jeton qui sera piloté par la souris
@@ -158,6 +168,26 @@ PlayersClient.prototype.advise = function(pMessage, pMessageAction, pAction, pMy
     }.bind(this));
 }
 // --------------------------------------------------------------
+// MAJ le temps total passé par le joueur sur toutes ses parties
+// --------------------------------------------------------------
+PlayersClient.prototype.refreshElapsedTime = function(pMyTotalTime){  
+    this[pMyTotalTime.monClientPlayer].timerFrame.innerHTML = vToolBox.convertSecsToDaysHoursMinsSecs(pMyTotalTime.monTotalTime);
+}
+// --------------------------------------------------------------
+// MAJ le temps total passé par le joueur sur toutes ses parties
+// --------------------------------------------------------------
+PlayersClient.prototype.addOneSecond = function(pWebSocketConnection){  
+    this.elapsedTime++;
+    this[this.myClientPlayer].totalPlayedTime++;
+    
+    var vMyTotalTime = { 
+        monClientPlayer : this.myClientPlayer,
+        monNumPlayer : this.myNumPlayer,
+        monTotalTime : this[this.myClientPlayer].totalPlayedTime,
+    }
+    pWebSocketConnection.emit('broadcastTotalTime',vMyTotalTime);
+}
+// --------------------------------------------------------------
 // Retour au formulaire de login
 // Régénération de l'écran de base from scratch;
 // --------------------------------------------------------------
@@ -193,8 +223,6 @@ PlayersClient.prototype.checkPilsEated = function(pMouseCoord, pWebSocketConnect
         this.selectNextPilsToEat(pWebSocketConnection);
     }  
 }
-
-
 // --------------------------------------------------------------
 // Gestion de la capture du jeton du joueur et attachement à la souris
 // puis Jeu proprement dit, le joueur doit manger toutes les pilules 
@@ -271,15 +299,18 @@ PlayersClient.prototype.selectNextPilsToEat = function(pWebSocketConnection){
     } else {
         if (!this.vainqueurTrouve){
             this.vainqueurTrouve = true;
+            this[this.myClientPlayer].vainqueur = true;
             this.advise('VICTOIRE !!! Vous avez gagné', 'Terminer', this.restartLogin);
             this.endOfParty(pWebSocketConnection)
         }
     }
 }
-/// -------------------------------------------------------------------------
-// Fin de la partie - 
+// -------------------------------------------------------------------------
+// Fin de la partie 
 // Restauration du curseur de souris standard
 // Détachement du Jeton du joueur  de la souris
+// Sortie automatique de la partie au bout de N secondes si le joueur n'est 
+// pas sorti de lui-même
 // -------------------------------------------------------------------------
 PlayersClient.prototype.clearParty = function(){
     document.body.style.cursor = 'default';
@@ -287,7 +318,7 @@ PlayersClient.prototype.clearParty = function(){
     window.removeEventListener("mousemove", this.playAndEatPils.bind(this)); 
     this.timerToExit();
 }
-/// -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 // Fin de la partie - 
 // Notification aux autres joueurs de la fin de partie
 // -------------------------------------------------------------------------
@@ -296,13 +327,15 @@ PlayersClient.prototype.endOfParty = function(pWebSocketConnection){
     var vMyClient = { 
         monClientPlayer : this.myClientPlayer,
         monNumPlayer : this.myNumPlayer,
+        monElapsedTime : this.elapsedTime,                                  
+        monVainqueur : this[this.myClientPlayer].vainqueur,
     }
     pWebSocketConnection.emit('stopGame',vMyClient);
 }
 // -------------------------------------------------------------------------
 // Lancement du jeu
 // -------------------------------------------------------------------------
-PlayersClient.prototype.startGame = function(pMyPlayer, pWebSocketConnection){   
+PlayersClient.prototype.startGame = function(pMyPlayer, pWebSocketConnection){  
     pWebSocketConnection.emit('startGame',pMyPlayer);
 }
 // -------------------------------------------------------------------------
@@ -310,10 +343,10 @@ PlayersClient.prototype.startGame = function(pMyPlayer, pWebSocketConnection){
 // après la fin de la partie, s'ils n'ont pas actionné eux-même le boutoin 
 // de retour à l'écran de Login
 // -------------------------------------------------------------------------
-PlayersClient.prototype.timerToExit = function(pMyPlayer, pWebSocketConnection){   
+PlayersClient.prototype.timerToExit = function(){   
     setTimeout(function(){
         this.vAdviseBtn.click();
-    }.bind(this), this.delayToreset * 1000);
+    }.bind(this), this.delayToReset * 1000);
 }
 /// -------------------------------------------------------------------------
 // Création physique du "Control-Panel", version "Photo du Tour de France"
@@ -383,7 +416,7 @@ PlayersClient.prototype.drawTimerFrame = function(){
     this[this.indexCurrentPlayer].timerFrame = window.document.createElement('div');   
     this[this.indexCurrentPlayer].playerFrame.appendChild(this[this.indexCurrentPlayer].timerFrame);  
     this[this.indexCurrentPlayer].timerFrame.setAttribute('class', 'timerFrame'); 
-    this[this.indexCurrentPlayer].timerFrame.innerHTML = '0h 0mn 0sec';
+    this[this.indexCurrentPlayer].timerFrame.innerHTML = vToolBox.convertSecsToDaysHoursMinsSecs(this[this.indexCurrentPlayer].totalPlayedTime);
 }
 // -------------------------------------------------------------------------
 // Création physique du cadre des données du joueur dans le "Control-Panel" 
