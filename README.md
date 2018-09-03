@@ -1,7 +1,7 @@
 # Projet Atelier N°2 (Back-End) - Tour de France
 Date : Juillet 2018
 
-Regarder ce document en mode 
+Pour garder le format de présentation original, regarder ce document en mode "RAW" ou en mode "Edit" dans GitHub 
 
 Auteur : 
 - Dominique Hourdequin
