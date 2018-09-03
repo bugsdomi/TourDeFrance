@@ -20,12 +20,13 @@ function PlayersClient(){
     this.nextPilsY = -1;                                // Coordonnée X de la Pils désignée pour être la prochaine à être mangée (mémorisée à part pour eviter des calcules recurrents)
 
     this.ControlPanel;                                  // Panneau de controle contenant les avatars, les pseudo + Mails, et leur score 
+    this.imgBtnPlayerList;                              // Petit bouton d'affichage de la liste des joueurs à partir du Control-Panel
     this.myClientPlayer = '';                           // Variable qui servira de raccourci pour l'objet "n" et diminuera la longueur du code  ('player0' à 'player3')
     this.myNumPlayer = -1;                              // Pendant de la variable ci-dessus mais sans le préfixe 'player' 'player3')
     this.distance= -1;                                  // Stocke la distance calculée entre 2 (utilisée lors de la detection de la Pils mangée)
     this.vainqueurTrouve = false;                       // Flag permettant de determiner le vainqueur dès que le 1er joueur a mangé toutes ses pils 
     this.vAdviseBtn;                                    // Instance du bouton afin de pouvoir simuler son click de n'importe
-    this.elapsedTime;                                   // Valeur du chrono du temps de la dernière partie
+    this.rayon = undefined;                             // Taille du rayon du conteneur du jeton
 
     this.player0 =
     {
@@ -37,7 +38,6 @@ function PlayersClient(){
         containerAvatarToken : undefined,                // Conteneur du jeton qui sera piloté par la souris
         coordX : undefined,                              // Coordonnées en X du jeton du joueur (coordonnées pures, sans 'px')
         coordY : undefined,                              // Coordonnées en Y du jeton du joueur (coordonnées pures, sans 'px')
-        rayon : undefined,                               // Taille du rayon du conteneur du jeton
         tokenCaptured : false,                           // Le jeton a été capturé par la souris et la suit desormais
         avatarToken : undefined,                         // Jeton de l'avatar qui sera piloté à la souris
         playerFrame : undefined,                         // Objet du Cadre contenant l avatar; le pseudo; et le scorte
@@ -58,7 +58,6 @@ function PlayersClient(){
         containerAvatarToken : undefined,                // Conteneur du jeton qui sera piloté par la souris
         coordX : undefined,                              // Coordonnées en X du jeton du joueur (coordonnées pures, sans 'px')
         coordY : undefined,                              // Coordonnées en Y du jeton du joueur (coordonnées pures, sans 'px')
-        rayon : undefined,                               // Taille du rayon du conteneur du jeton
         tokenCaptured : false,                           // Le jeton a été capturé par la souris et la suit desormais
         avatarToken : undefined,                         // Jeton de l'avatar qui sera piloté à la souris
         playerFrame : undefined,                         // Objet du Cadre contenant l avatar; le pseudo; et le scorte
@@ -79,7 +78,6 @@ function PlayersClient(){
         containerAvatarToken : undefined,                // Conteneur du jeton qui sera piloté par la souris
         coordX : undefined,                              // Coordonnées en X du jeton du joueur (coordonnées pures, sans 'px')
         coordY : undefined,                              // Coordonnées en Y du jeton du joueur (coordonnées pures, sans 'px')
-        rayon : undefined,                               // Taille du rayon du conteneur du jeton
         tokenCaptured : false,                           // Le jeton a été capturé par la souris et la suit desormais
         avatarToken : undefined,                         // Jeton de l'avatar qui sera piloté à la souris
         playerFrame : undefined,                         // Objet du Cadre contenant l avatar; le pseudo; et le scorte
@@ -100,7 +98,6 @@ function PlayersClient(){
         containerAvatarToken : undefined,                // Conteneur du jeton qui sera piloté par la souris
         coordX : undefined,                              // Coordonnées en X du jeton du joueur (coordonnées pures, sans 'px')
         coordY : undefined,                              // Coordonnées en Y du jeton du joueur (coordonnées pures, sans 'px')
-        rayon : undefined,                               // Taille du rayon du conteneur du jeton
         tokenCaptured : false,                           // Le jeton a été capturé par la souris et la suit desormais
         avatarToken : undefined,                         // Jeton de l'avatar qui sera piloté à la souris
         playerFrame : undefined,                         // Objet du Cadre contenant l avatar; le pseudo; et le scorte
@@ -177,7 +174,6 @@ PlayersClient.prototype.refreshElapsedTime = function(pMyTotalTime){
 // MAJ le temps total passé par le joueur sur toutes ses parties
 // --------------------------------------------------------------
 PlayersClient.prototype.addOneSecond = function(pWebSocketConnection){  
-    this.elapsedTime++;
     this[this.myClientPlayer].totalPlayedTime++;
     
     var vMyTotalTime = { 
@@ -233,9 +229,20 @@ PlayersClient.prototype.playAndEatPils = function(pWebSocketConnection, event){
         left: event.clientX,
         top: event.clientY,
     };
+
+    if (vMouseCoord.top <= parseInt(this.controlPanel.style.height)){
+        this[this.myClientPlayer].tokenCaptured = false;
+        document.body.style.cursor = 'default';
+    } else {
+        if (!this.vainqueurTrouve){
+            this[this.myClientPlayer].tokenCaptured = true;
+            document.body.style.cursor = 'none';
+        }
+    }
+    
     if (this[this.myClientPlayer].tokenCaptured){
-        this[this.myClientPlayer].containerAvatarToken.style.left = vMouseCoord.left - (this[this.myClientPlayer].rayon)+ 'px';
-        this[this.myClientPlayer].containerAvatarToken.style.top = vMouseCoord.top - (this[this.myClientPlayer].rayon)+ 'px';
+        this[this.myClientPlayer].containerAvatarToken.style.left = vMouseCoord.left - (this.rayon)+ 'px';
+        this[this.myClientPlayer].containerAvatarToken.style.top = vMouseCoord.top - (this.rayon)+ 'px';
         
         var vMyToken = { 
             monClientPlayer : this.myClientPlayer,
@@ -313,34 +320,54 @@ PlayersClient.prototype.selectNextPilsToEat = function(pWebSocketConnection){
 // pas sorti de lui-même
 // -------------------------------------------------------------------------
 PlayersClient.prototype.clearParty = function(){
+    this.vainqueurTrouve = true;
+    window.removeEventListener("mousemove", this.playAndEatPils.bind(this)); 
     document.body.style.cursor = 'default';
     this[this.myClientPlayer].tokenCaptured = false;
-    window.removeEventListener("mousemove", this.playAndEatPils.bind(this)); 
-    this.timerToExit();
+    this.timerToExit();             // Déclenchement du timer de sortie automatique
 }
 // -------------------------------------------------------------------------
 // Fin de la partie - 
-// Notification aux autres joueurs de la fin de partie
+// Le joueur qui a gagné envoie au serveur l'ordre d'arrêter le jeu (et donc aussi le chrono)
+// Le serveur va notifier aux autres joueurs la fin de partie et leur statut de "Loosers"
+// et enregistrer les données de temps et de score
 // -------------------------------------------------------------------------
 PlayersClient.prototype.endOfParty = function(pWebSocketConnection){
     this.clearParty();
     var vMyClient = { 
         monClientPlayer : this.myClientPlayer,
         monNumPlayer : this.myNumPlayer,
-        monElapsedTime : this.elapsedTime,                                  
+        monTotalTime : this[this.myClientPlayer].totalPlayedTime,                                 
         monVainqueur : this[this.myClientPlayer].vainqueur,
     }
     pWebSocketConnection.emit('stopGame',vMyClient);
 }
 // -------------------------------------------------------------------------
+// Fin de la partie - 
+// Le joueur qui a gagné envoie au serveur l'ordre d'arrêter le jeu (et donc aussi le chrono)
+// Le serveur va notifier aux autres joueurs la fin de partie et leur statut de "Loosers"
+// et enregistrer les données de temps et de score
+// -------------------------------------------------------------------------
+PlayersClient.prototype.sendPartyData = function(pWebSocketConnection){
+    var vMyClient = { 
+        monClientPlayer : this.myClientPlayer,
+        monNumPlayer : this.myNumPlayer,
+        monTotalTime : this[this.myClientPlayer].totalPlayedTime,                                 
+        monVainqueur : this[this.myClientPlayer].vainqueur,
+        monNbrePilsMangees : this.maxPilsByPlayer - this[this.myClientPlayer].pilsNonMangeesRestantes--,
+    }
+    pWebSocketConnection.emit('sendPartyData',vMyClient);
+}
+// -------------------------------------------------------------------------
 // Lancement du jeu
 // -------------------------------------------------------------------------
 PlayersClient.prototype.startGame = function(pMyPlayer, pWebSocketConnection){  
+    window.addEventListener('mousemove', this.playAndEatPils.bind(this, pWebSocketConnection));
     pWebSocketConnection.emit('startGame',pMyPlayer);
 }
 // -------------------------------------------------------------------------
 // Ce timer a pour fonction de sortir les joueurs au bout d'un certain temps
-// après la fin de la partie, s'ils n'ont pas actionné eux-même le boutoin 
+// après la fin de la partie, s'ils n'ont pas actionné eux-même le bouton 
 // de retour à l'écran de Login
 // -------------------------------------------------------------------------
 PlayersClient.prototype.timerToExit = function(){   
@@ -348,13 +375,39 @@ PlayersClient.prototype.timerToExit = function(){
         this.vAdviseBtn.click();
     }.bind(this), this.delayToReset * 1000);
 }
-/// -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Création physique du bouton "Liste des joueurs" à partir de la partie en cours
+// -------------------------------------------------------------------------
+PlayersClient.prototype.drawBtnPlayerListe = function(pOuterBrdrWindowList, pWindowList, pWebSocketConnection){
+    this.imgBtnPlayerList = window.document.createElement('img');   
+    window.document.body.appendChild(this.imgBtnPlayerList);  
+
+    this.imgBtnPlayerList.setAttribute('id', 'idImgBtnPlayerList');
+    this.imgBtnPlayerList.setAttribute('src', 'static/images/Btn-Liste-joueurs.jpg');
+    this.imgBtnPlayerList.setAttribute('alt', 'Listes des joueurs');
+    this.imgBtnPlayerList.setAttribute('title', 'Listes des joueurs');
+
+    var widthCadreJoueur = vToolBox.convertPercentToPixels(20,false);
+    var vInterEspace = ((vToolBox.screenWidth - (widthCadreJoueur * 4)) / 5);
+
+    this.imgBtnPlayerList.style.width = (vInterEspace - 2) - 4 +'px';
+    this.imgBtnPlayerList.style.left = (vToolBox.screenWidth / 2) - (parseInt(this.imgBtnPlayerList.style.width) / 2) + 8 + 'px';
+    this.imgBtnPlayerList.style.top = (this.controlPanel.style.height / 2) + (parseInt(this.imgBtnPlayerList.style.width) / 2) + 8 + 'px';
+
+    this.imgBtnPlayerList.addEventListener('click', function(){
+        this.askPlayersList(pOuterBrdrWindowList, pWindowList, pWebSocketConnection)
+    }.bind(this));
+}
+// -------------------------------------------------------------------------
 // Création physique du "Control-Panel", version "Photo du Tour de France"
 // -------------------------------------------------------------------------
-PlayersClient.prototype.drawControlPanel = function(){
+PlayersClient.prototype.drawControlPanel = function(pOuterBrdrWindowList, pWindowList, pWebSocketConnection){
     this.controlPanel = window.document.createElement('div');   
     window.document.body.appendChild(this.controlPanel);  
     this.controlPanel.setAttribute('class', 'controlPanel');
+    this.controlPanel.style.height = parseInt(window.getComputedStyle(this.controlPanel,null).getPropertyValue('height')) + 'px';
+
+    this.drawBtnPlayerListe(pOuterBrdrWindowList, pWindowList, pWebSocketConnection);
 }
 // -------------------------------------------------------------------------
 // Création physique de l'avatar du joueur dans le "Control-Panel"
@@ -466,10 +519,9 @@ PlayersClient.prototype.drawAvatarToken = function(){
         break;
     }
 
-    this[this.indexCurrentPlayer].rayon = parseInt(window.getComputedStyle(this[this.indexCurrentPlayer].containerAvatarToken,null).getPropertyValue('width')) / 2;
-    this[this.indexCurrentPlayer].coordX =  parseInt(window.getComputedStyle(this[this.indexCurrentPlayer].containerAvatarToken,null).getPropertyValue('left')) + 
-                                            this[this.indexCurrentPlayer].rayon; 
-    this[this.indexCurrentPlayer].coordY =  parseInt(window.getComputedStyle(this[this.indexCurrentPlayer].containerAvatarToken,null).getPropertyValue('top')) +                                               this[this.indexCurrentPlayer].rayon;
+    this.rayon = parseInt(window.getComputedStyle(this[this.indexCurrentPlayer].containerAvatarToken,null).getPropertyValue('width')) / 2;
+    this[this.indexCurrentPlayer].coordX =  parseInt(window.getComputedStyle(this[this.indexCurrentPlayer].containerAvatarToken,null).getPropertyValue('left')) + this.rayon; 
+    this[this.indexCurrentPlayer].coordY =  parseInt(window.getComputedStyle(this[this.indexCurrentPlayer].containerAvatarToken,null).getPropertyValue('top')) + this.rayon;
 
     this[this.indexCurrentPlayer].avatarToken = window.document.createElement('img');   
     this[this.indexCurrentPlayer].containerAvatarToken.appendChild(this[this.indexCurrentPlayer].avatarToken);     
@@ -480,3 +532,114 @@ PlayersClient.prototype.drawAvatarToken = function(){
         this[this.indexCurrentPlayer].avatarToken.style.animation = '0.3s linear infinite animeAvatarToken alternate';
     }
 }           
+// -------------------------------------------------------------------------
+// Affichage de la fenetre de la liste et demand au serveurs de la liste 
+// des joueurs
+// -------------------------------------------------------------------------
+PlayersClient.prototype.askPlayersList = function(pOuterBrdrWindowList, pWindowList, pWebSocketConnection){
+    pOuterBrdrWindowList.style.display = 'block';
+    pWindowList.style.display = 'block';
+    pWebSocketConnection.emit('askPlayersList');
+}
+// -------------------------------------------------------------------------
+// Affichage de la fenetre de la liste et demand au serveurs de la liste 
+// des joueurs
+// -------------------------------------------------------------------------
+PlayersClient.prototype.displayDisclaimer = function(pOuterBrdrWindowList, pWindowList, pWebSocketConnection){
+    pOuterBrdrWindowList.style.display = 'block';
+    pWindowList.style.display = 'block';
+
+    var vInnerHTML = 
+    '<h1>Avertissement</h1></br>' +
+    'Ce jeu non "politiquement correct", a été créé suite à la polémique qui a éclaté à propos de Christopher Froome, peu avant le Tour de France 2018.</br></br>' +
+    'Cette affaire venait s\'ajouter à tant d\'autres qui ont émaillé l\'Histoire du sport en général et du cyclisme en particulier : ' +
+    '</br>'+
+        '- Laurent Jalabert</br>'+
+        '- Richard Virenque</br>'+
+        '- Lance Armstrong</br>'+
+        '- Marco Pantani</br>'+
+        '- Jan Ullrich</br>'+
+        '- Alberto Contador</br>'+
+    '</ul>'+
+        '...et tellement d\'autres, parmi les plus grands, qui ont avoué avoir pris des produits durant leur carrière, bien après la fin de celle-ci...</br>' + 
+        'Certains en sont même morts, et aujourd\'hui, la 1ère affaire de dopage technologique est apparue avec un vélo électrique utilisé lors d\'une course amateur...</br>' +
+        'Il n\'y a pas de limites dans la recherche de la performance assistée, et malheureusement, cela fait de gros dégâts parmi les sportifs "clean", dans l\'opinion publique, et c\'est bien triste pour eux et le sport en général... </br></br>' +
+        'C\'est en pensant à tous ces sportifs "propres", que j\'ai conçu ce petit jeu, sans autre prétention que d\'apporter une note d\'humour décalée et qui gratte un peu, là où ça fait mal... Ca fait souvent du bien...</br></br><hr></br>' +
+
+        '<h1>Pitch du jeu</h1></br>' +
+        'Willy Voet, le soigneur de l\'équipe Festina, trop pressé, a fait tomber sa caisse de produits dopants, et toutes les gélules se sont mélangées en vrac dans la caisse.</br>' +
+        'Les coureurs sont à quelques minutes du départ de la course et doivent <strong>impérativement ET rapidement</strong>, prendre leurs produits dopants qui ont été dosés et étudiés spécifiquement pour chacun d\'entr-eux.</br>' + 
+        'Fort heureusement, chacune des gélules du traitement est repérée par une couleur spécifique à chaque coureur, qu\'il pourra donc s\`administrer sans risque d\'erreur.</br></br><hr></br>' +
+        '<h1>Règles du jeu</h1></br>' +
+        'Le but du jeu est de manger toutes les gélules de la couleur de votre avatar, le plus rapidement possible</br>' + 
+        'Mais elles doivent être mangées dans un certain ordre, c\'est pour cette raison, que chacune des gélules clignote et tourne, jusqu\'à ce qu\'elle soit ingérée, et qu\'il n\'y en ait plus du tout...</br></br>' +
+        'Après avoir saisi votre pseudo, vous arrivez dans la partie proprement dite, avec les pilules de couleur identique à l\'avatar qui clignote et qui vous représente.</br>' +
+        'Le 1er joueur disponible est le "Maître du Jeu", c\'est lui qui va déclencher la partie.</br>'+
+        'Votre Avatar, représenté par un jeton de couleur avec la photo de votre avatar, va s\'accrocher à votre souris et la suivre...</br>' + 
+        'Vous n\'avez qu\'à la diriger sur la gélule de votre couleur, qui tourne pour la manger, puis la suivante, après une petite phase ou elle va changer de dimension alternativement quelque secondes, puis se mettre à tourner en attendant d\'être mangée à son tour, et ainsi de suite, jusqu\'à ce que le stock soit épuisé.</br></br>' +
+        'Vous pouvez suivre votre progression sur le panneau qui concerne votre avatar en aut de l\'écran (Nombre de gélules mangées / Total de gélules, et cumul de temps de jeu).</br></br>' +
+        'Vous pouvez accéder à la liste de tous les joueurs ayant participé à ce jeu, soit dans l\'écran principal (bouton "Podium" à gauche) , soit dans l\'écran de jeu, où vous disposez de ce même bouton, mais de taille réduite, au centre du panneau de contrôle, en haut de l\'écran.</br>' + 
+        'Vous pouvez quitter cette liste (ainsi que l\'écran que vous êtes en train de lire actuellement) en appuyant sur n\'importe quelle touche du clavier...</br></br></br>' + 
+        'Amusez-vous et prenez autant de plaisir que je me suis amusé à le créer...</br></br>' + 
+        'L\'Auteur...</br></br><hr></br>' +
+        '<h1>Règles de calcul des points et du ranking</h1></br>' +
+        'Les points sont caculés selon le barême suivant :</br>' + 
+        '1) Chaque participation a 1 partie vaut 10 points</br>' +
+        '2) Chaque gélule mangée vaut 1 point</br>' + 
+        '3) Chaque victoire vaut 100 points</br></br>' + 
+        'Ceci donne nombre de points brut (TPB) qui est pondéré par le temps et le nombres de gélules mangées :</br>' +
+        'Le nombre TOTAl de points (NTP) est calculé selon la méthode suivante :</br>' +
+        'NTP = NTP + (TPB + (Temps de la dernière partie / Nbre de gélules mangées)) --> Total de points pondérés (TPP), qui vient s\'ajouter à vos points déjà enregistrés lors de précédentes parties</br></br>' +
+        'Le ranking est calculé selon la méthode suivante :</br>' + 
+        'Ranking = Nbre total de points / Nbre de parties jouées</br></br>' +
+        'Bonne chance et Bon Jeu !!!</br></br></br></br>';
+
+    pWindowList.innerHTML = vInnerHTML;
+}
+// -------------------------------------------------------------------------
+// Affichage de la liste des joueurs
+// -------------------------------------------------------------------------
+PlayersClient.prototype.displayPlayersList = function(pWindowList, pDocuments){
+    var vInnerHTML ='';
+
+    vInnerHTML = 
+    '<table>' +
+        '<caption> Liste des joueurs ayant joué à "Tour De France"</caption>' + 
+        '<thead>' +
+            '<tr>' +
+                '<th scope="col">Pseudo</th>' + 
+                '<th scope="col">Nbre de parties</th>' +
+                '<th scope="col">Parties gagnées</th>' +
+                '<th scope="col">Parties perdues</th>' +
+                '<th scope="col">Temps total de jeu</th>' +
+                '<th scope="col">Nbre de points</th>' +
+                '<th scope="col">Ranking</th>' +
+            '</tr>' +
+        '</thead>' +
+        '<tbody>';
+
+    pDocuments.forEach(function(player){
+        vInnerHTML = vInnerHTML +        
+            '<tr>' +
+                '<th scope="row">'+player.pseudo +'</th>' +
+                '<td>' + (player.nbrWonParties + player.nbrLostParties) + '</td>' +
+                '<td>' + player.nbrWonParties + '</td>' +
+                '<td>' + player.nbrLostParties + '</td>' +
+                '<td>' + vToolBox.convertSecsToDaysHoursMinsSecs(player.totalPlayedTime) + '</td>' +
+                '<td>' + player.totalPoints + '</td>' +
+                '<td>' + player.ranking + '</td>' +
+            '</tr>';
+    });
+
+    vInnerHTML = vInnerHTML +
+        '</tbody>' +
+    '</table>';
+
+    pWindowList.innerHTML = vInnerHTML;
+}
+// --------------------------------------------------------------
+// Guette l'appui d'une touche quelconque pour fermer la fenêtre
+// --------------------------------------------------------------
+PlayersClient.prototype.gereAppuiTouche = function(pOuterBrdrWindowList, event){
+    pOuterBrdrWindowList.style.display = 'none';
+}

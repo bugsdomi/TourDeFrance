@@ -75,5 +75,5 @@ ToolBox.prototype.convertSecsToHoursMinsSecs = function(pNbreSecondes) {
 ToolBox.prototype.convertSecsToDaysHoursMinsSecs = function(pNbreSecondes) {
     var nbJours = Math.floor(pNbreSecondes/(86400));
     pNbreSecondes -= nbJours * 86400;
-    return this.addZero(nbJours)+'j    ' + this.convertSecsToHoursMinsSecs(pNbreSecondes);
+    return this.addZero(nbJours)+'j ' + this.convertSecsToHoursMinsSecs(pNbreSecondes);
 }

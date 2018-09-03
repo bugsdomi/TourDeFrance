@@ -24,8 +24,6 @@
 // Lance l'éxecution du script après chargement et affichage du document  (Window)
 //-----------------------------------------------------------------------------------
 window.addEventListener('DOMContentLoaded', function(){
-    vToolBox = new ToolBox();
-    var vPlayersClient = new PlayersClient();       // Instanciation de l'objet descrivant l'ensemble des joueurs et les méthodes de gestion de ces joueurs
 
     // -------------------------------------------------------------------------
     // Initialisation coté client de la connexion SocketIO
@@ -59,11 +57,18 @@ window.addEventListener('DOMContentLoaded', function(){
         vPlayersClient.advise('Vous êtes le Maître de la partie et avez le privilège de la lancer','Démarrer la partie',vPlayersClient.startGame, pMyPlayer, webSocketConnection);
     });
     // -------------------------------------------------------------------------
-    // On notifie au joueur qu'il est le Maître de la partie
+    // On notifie au joueur qu'il est une gros Looser et qu'iol ferait meix d'aller 
+    // se cacher sous une plaque d'égout
     // -------------------------------------------------------------------------
-    webSocketConnection.on('youLoose', function(){
+    webSocketConnection.on('youLost', function(){
         vPlayersClient.clearParty();
         vPlayersClient.advise('Défaite !!!! Vous avez perdu','recommencer',vPlayersClient.restartLogin);
+    });
+    // -------------------------------------------------------------------------
+    // On demande aux joueurs d'envoyer leurs stats de jeu
+    // -------------------------------------------------------------------------
+    webSocketConnection.on('askPartyData', function(){
+        vPlayersClient.sendPartyData(webSocketConnection);
     });
     // -------------------------------------------------------------------------
     // Le serveur a sollicité la saisie du Login du joueur qui vient de se connecter
@@ -75,16 +80,22 @@ window.addEventListener('DOMContentLoaded', function(){
         vLoginForm.style.display='block';
     });
     // -------------------------------------------------------------------------
-    // Affiche le fond d'écran bigarré, et le panneau de contrôle
+    // Affiche le fond d'écran bigaré, et le panneau de contrôle
     // -------------------------------------------------------------------------
     webSocketConnection.on('drawGameBackground', function(){
+        vBtnImgBtnListMainScreen.style.display = 'none';
+        vBtnImgBtnDisclaimer.style.display = 'none';
+        vPalmares.style.display = 'none';
+        vGameRules.style.display = 'none';;
+    
+
         var vPlayerBackground = window.document.createElement('img');   
         window.document.body.appendChild(vPlayerBackground);     
         vPlayerBackground.setAttribute('src', 'static/images/FondEcran.png');
         vPlayerBackground.style.height = '100%';
         vPlayerBackground.style.width = '100%';
 
-        vPlayersClient.drawControlPanel();
+        vPlayersClient.drawControlPanel(vOuterBrdrWindowList, vWindowList, webSocketConnection);
     });
     // -------------------------------------------------------------------------
     // Création et Affichage l'ensemble des pilules du joueurs qui ont été instanciées, 
@@ -92,7 +103,6 @@ window.addEventListener('DOMContentLoaded', function(){
     // du joueurs et de son avatar
     // -------------------------------------------------------------------------
     webSocketConnection.on('drawPils', function(pPlayerData){
-        
         var vCurrentPlayer = 'player'+pPlayerData.currentPlayer; 
 
         vPlayersClient.indexCurrentPlayer = vCurrentPlayer; 
@@ -187,7 +197,6 @@ window.addEventListener('DOMContentLoaded', function(){
     webSocketConnection.on('hideEatedPils', function(pMyPils){ 
         vPlayersClient.hideEatedPils(pMyPils);
     });
-
     // --------------------------------------------------------------
     // Ajoute 1 seconde au temps total du joueur
     // --------------------------------------------------------------
@@ -199,6 +208,12 @@ window.addEventListener('DOMContentLoaded', function(){
     // --------------------------------------------------------------
     webSocketConnection.on('refreshElapsedTime', function(pMyTotalTime){  
         vPlayersClient.refreshElapsedTime(pMyTotalTime);
+    });
+    // --------------------------------------------------------------
+    // Réception de la liste des joueurs pour affichage
+    // --------------------------------------------------------------
+    webSocketConnection.on('displayPlayersList', function(pDocuments){  
+        vPlayersClient.displayPlayersList(vWindowList, pDocuments);
     });
     // -------------------------------------------------------------------------
     // Envoi des infos de login du client lorsque la saisie est validée syntaxiquement 
@@ -218,5 +233,28 @@ window.addEventListener('DOMContentLoaded', function(){
             vLoginForm.style.display='none';
         }
     });
+    // -------------------------------------------------------------------------
+    // Initialisations
+    // -------------------------------------------------------------------------
+    vToolBox = new ToolBox();
+    var vPlayersClient = new PlayersClient();       // Instanciation de l'objet descrivant l'ensemble des joueurs et les méthodes de gestion de ces joueurs
+    var eventListenerPlayAndEatPils = undefined;
+
+    var vBtnImgBtnListMainScreen = document.getElementById('idImgBtnList');
+    var vBtnImgBtnDisclaimer = document.getElementById('idBtnImgBtnDisclaimer');
+    var vOuterBrdrWindowList = document.getElementById('idOuterBrdrWindowList');
+    var vWindowList = document.getElementById('idWindowList');
+    
+    var vPalmares = document.getElementById('idPalmares');
+    var vGameRules = document.getElementById('idGameRules');
+    
+    window.addEventListener('keydown',vPlayersClient.gereAppuiTouche.bind(vPlayersClient,vOuterBrdrWindowList));   
+    
+    vBtnImgBtnListMainScreen.addEventListener('click', function(){
+        vPlayersClient.askPlayersList(vOuterBrdrWindowList, vWindowList, webSocketConnection);
+    });    
+    vBtnImgBtnDisclaimer.addEventListener('click', function(){
+        vPlayersClient.displayDisclaimer(vOuterBrdrWindowList, vWindowList, webSocketConnection);
+    });    
 });        
 // -----------------------------------------------------------------------------

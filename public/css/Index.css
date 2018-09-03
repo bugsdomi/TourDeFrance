@@ -3,6 +3,12 @@
 /* ------------------------------------------------------------ */
 @import url('https://fonts.googleapis.com/css?family=Faster+One');
 
+@keyframes scrollControlPanel {
+    from {background-position-x: 0px;}
+    to {background-position-x: 1920px;} 
+}
+
+
 @keyframes animeAvatar {
     0% { transform: scale(0.8); }
     100% { transform: scale(1); }
@@ -58,6 +64,10 @@
     }
 }
 
+@keyframes animeBtnPlayerListe {
+    0% { transform: rotate(-15deg); }
+    100% { transform: rotate(+15deg); }
+}
 
 * {
     /* Pour empecher la sélection des objets statiques à l'écran  */
@@ -228,15 +238,11 @@ form input:invalid{
     font-family: 'Faster One', Georgia, cursive, serif, sans-serif;
     font-style: normal;
     font-size: 1.6em;
-    /* font-weight: bold; */
-
     text-align: center;
-    /* text-transform: uppercase; */
-
     top: 5px;
 }
 
-.adviseWindowdh {
+.adviseWindow {
     overflow: hidden;
     position: absolute;
     top: 50%;
@@ -260,9 +266,7 @@ form input:invalid{
 }
 
 .controlPanel{
-    background : url("../images/991527628-1024x1024.png") ;
-    background-size: cover;
-    background-repeat: no-repeat;
+    background-image: url("../images/991527628-1024x1024.png") ;
     position: absolute;
     height: 174px;
     width: 99.5%;
@@ -270,6 +274,8 @@ form input:invalid{
     left: 0;
     border-radius : 10px;
     border : solid 5px rgb(252,141,50);
+    animation:  6s linear infinite scrollControlPanel;
+
 }
 
 .avatar{
@@ -342,3 +348,188 @@ form input:invalid{
     width: 100px;
     border-radius : 50%;
 }
+
+#idImgBtnList{
+    border: solid black 3px;
+    border-radius: 20px;
+    height: 350px;
+    width: auto;
+    position: absolute;
+    top: 14%;
+    left: 2.8%;
+    transform: rotate(-15deg);
+    filter: drop-shadow(10px 10px 20px black);
+    /* animation : 0.3s linear infinite animeBtnPlayerListe alternate; */
+}
+
+#idImgBtnList:hover{
+    transform: rotate(-15deg) scale(1.09);
+}
+
+#idImgBtnList:active{
+    transform: rotate(-15deg) scale(0.95);
+}
+
+
+#idImgBtnPlayerList{
+    position: absolute;
+    top : 60px;
+    height: auto;
+    transform: rotate(-15deg);
+
+    border: solid black 2px;
+    border-radius: 5px;
+    filter: drop-shadow(10px 10px 20px black);
+    animation : 0.3s linear infinite animeBtnPlayerListe alternate;
+}
+
+#idImgBtnPlayerList:hover{
+    animation : 0.3s linear 1 animeBtnPlayerListe;
+    transform: rotate(-15deg) scale(1.09);
+    
+}
+
+#idImgBtnPlayerList:active{
+    transform: rotate(-15deg) scale(0.95);
+}
+
+
+
+#idOuterBrdrWindowList{
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    width: calc(45vw + 30px);
+    height: calc(70vh + 30px);
+    
+    /* padding: 20px; */
+    background: linear-gradient(0.75turn, rgba(252,141,50,0.9), rgba(230,159,42,.9));
+
+    border: solid 3px black;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 13px;
+
+    z-index: 1000010;
+    filter: drop-shadow(10px 10px 20px #000000);
+    overflow: hidden;
+    display: none;
+}
+
+#idWindowList{
+    position: relative;
+    width: 98%;
+    height: 98%;
+
+    background: linear-gradient(0.75turn, rgba(252,141,50,0.9), rgba(230,159,42,.9));
+
+    border: 10px solid transparent;
+    border-image: url("../images/cadre-photo-arrondi-jaune-grand.jpg") 16 round;
+
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    overflow: auto;
+    display: none;
+}
+
+
+thead,
+tfoot {
+    background-color: #3f87a6;
+    color: #fff;
+}
+
+tbody {
+    background-color: #e4f0f5;
+}
+
+caption {
+    padding: 10px;
+    caption-side: bottom;
+}
+
+table {
+    border-collapse: collapse;
+    border: 2px solid rgb(200, 200, 200);
+    letter-spacing: 1px;
+    font-family: sans-serif;
+    font-size: .8rem;
+}
+
+td,
+th {
+    border: 1px solid rgb(190, 190, 190);
+    padding: 5px 10px;
+    width:  13%;
+    
+}
+
+td {
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background-color: #fbf18d;
+    /* background-color: #f9db09; */
+}
+
+
+#idBtnImgBtnDisclaimer{
+    position: absolute;
+    border: solid black 3px;
+    border-radius: 20px;
+    height: 350px;
+    width: auto;
+    top: 35%;
+    right: 4%;
+    transform: rotate(15deg);
+    filter: drop-shadow(10px 10px 20px black);
+    /* animation : 0.3s linear infinite animeBtnPlayerListe alternate; */
+}
+
+#idBtnImgBtnDisclaimer:hover{
+    transform: rotate(15deg) scale(1.09);
+}
+
+#idBtnImgBtnDisclaimer:active{
+    transform: rotate(15deg) scale(0.95);
+}
+
+h1{
+    text-align: center;
+}
+
+#idPalmares{
+    position: absolute;
+    top: 48%;
+    left: 10.5%;
+    
+    color: #6f3c13;
+    font-family: 'Faster One', Georgia, cursive, serif, sans-serif;
+    font-size: 2.2em;
+    font-style: normal;
+    font-weight: bold;
+    text-align: center;
+    transform: rotate(-9deg);
+    filter: drop-shadow(10px 10px 20px black);
+}
+
+#idGameRules{
+    position: absolute;
+    top: 30%;
+    right: 2%;
+    
+    color: #6f3c13;
+    font-family: 'Faster One', Georgia, cursive, serif, sans-serif;
+    font-size: 2.2em;
+    font-style: normal;
+    font-weight: bold;
+    text-align: center;
+    transform: rotate(20deg);
+    filter: drop-shadow(10px 10px 20px black);
+}
+
