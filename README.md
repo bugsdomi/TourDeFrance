@@ -1,6 +1,8 @@
 # Projet Atelier N°2 (Back-End) - Tour de France
 Date : Juillet 2018
 
+Regarder ce document en mode 
+
 Auteur : 
 - Dominique Hourdequin
 - DIWJS08 - Développeur FullStack Javascript
@@ -44,7 +46,7 @@ b) Arborescence
             db.createCollection("joueurs");
 
         La base de données "TourDeFrance" a déjà été créée et a actuellemnt une collection "joueurs".
-        Néanmois, si la BDD est vide, à la premiere exécution du jeu "TourDeFrance", lorsqu'un premier joueur s'inscrira, la collection "joueur" sera créée. 
+        Néanmoins, si la BDD est vide, à la premiere exécution du jeu "TourDeFrance", lorsqu'un premier joueur s'inscrira, la collection "joueur" sera créée. 
 
     d) Rappel de quelques commandes utiles pour MongoDB :
         use TourDeFrance
