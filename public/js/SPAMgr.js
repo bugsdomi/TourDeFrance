@@ -36,25 +36,36 @@ window.addEventListener('DOMContentLoaded', function(){
     // La partie est pleine, un message prévient le joueur 
     // -------------------------------------------------------------------------
     webSocketConnection.on('alertPartyFull', function(){
-        vPlayersClient.advise('La partie est pleine, revenez plus tard', 'Recommencer', vPlayersClient.restartLogin);
+        vPlayersClient.adviseWithButton('La partie est pleine, revenez plus tard', 'Recommencer', vPlayersClient.restartLogin);
     });
     // -------------------------------------------------------------------------
     // Le joueur qui essaie de se connecter est deja dans la partie
     // -------------------------------------------------------------------------
     webSocketConnection.on('playerAlreadyInGame', function(){
-        vPlayersClient.advise('Vous êtes déjà dans la partie dans une autre session','Recommencer', vPlayersClient.restartLogin);
+        vPlayersClient.adviseWithButton('Vous êtes déjà dans la partie dans une autre session','Recommencer', vPlayersClient.restartLogin);
     });
     // -------------------------------------------------------------------------
     // La partie a déjà commencée et le joueur potentiel est refoulé
     // -------------------------------------------------------------------------
     webSocketConnection.on('partyAlreadyStarted', function(){
-        vPlayersClient.advise('La partie a déjà débuté, revenez plus tard','Recommencer', vPlayersClient.restartLogin);
+        vPlayersClient.adviseWithButton('La partie a déjà débuté, revenez plus tard','Recommencer', vPlayersClient.restartLogin);
     });
     // -------------------------------------------------------------------------
     // On notifie au joueur qu'il est le Maître de la partie
     // -------------------------------------------------------------------------
     webSocketConnection.on('masterOfGame', function(pMyPlayer){
-        vPlayersClient.advise('Vous êtes le Maître de la partie et avez le privilège de la lancer','Démarrer la partie',vPlayersClient.startGame, pMyPlayer, webSocketConnection);
+        vPlayersClient.adviseWithButton('Vous êtes le Maître de la partie et avez le privilège de la lancer','Démarrer la partie',vPlayersClient.launchGame, pMyPlayer, webSocketConnection);
+    });
+    // -------------------------------------------------------------------------
+    // On previent le joueur que le jeu va demartrer dans n secondes
+    // -------------------------------------------------------------------------
+    webSocketConnection.on('adviseStartGame', function(){
+        vPlayersClient.vCompteARebours = vPlayersClient.compteARebours;
+        vPlayersClient.displayAdvise('Le jeu va démarrer dans '+vPlayersClient.vCompteARebours+' secondes'); 
+
+        vPlayersClient.refreshCompteARebours = setInterval(function(){
+            vPlayersClient.playCompteARebours(webSocketConnection)
+        },1000);
     });
     // -------------------------------------------------------------------------
     // On notifie au joueur qu'il est une gros Looser et qu'iol ferait meix d'aller 
@@ -62,7 +73,7 @@ window.addEventListener('DOMContentLoaded', function(){
     // -------------------------------------------------------------------------
     webSocketConnection.on('youLost', function(){
         vPlayersClient.clearParty();
-        vPlayersClient.advise('Défaite !!!! Vous avez perdu','recommencer',vPlayersClient.restartLogin);
+        vPlayersClient.adviseWithButton('Défaite !!!! Vous avez perdu','recommencer',vPlayersClient.restartLogin);
     });
     // -------------------------------------------------------------------------
     // On demande aux joueurs d'envoyer leurs stats de jeu
@@ -238,7 +249,6 @@ window.addEventListener('DOMContentLoaded', function(){
     // -------------------------------------------------------------------------
     vToolBox = new ToolBox();
     var vPlayersClient = new PlayersClient();       // Instanciation de l'objet descrivant l'ensemble des joueurs et les méthodes de gestion de ces joueurs
-    var eventListenerPlayAndEatPils = undefined;
 
     var vBtnImgBtnListMainScreen = document.getElementById('idImgBtnList');
     var vBtnImgBtnDisclaimer = document.getElementById('idBtnImgBtnDisclaimer');

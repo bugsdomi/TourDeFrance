@@ -323,14 +323,27 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
     }
     // -------------------------------------------------------------------------
     // Le Maître du jeu a lancé la partie
+    // Le serveur envoie la fenêtre de compte-à-rebours a tous les joueurs
+    // -------------------------------------------------------------------------
+    PlayersServer.prototype.adviseStartGame = function(pSocketIo){
+        for (let i=0; i <= this.maxPlayers-1; i++){
+            if (this.objectPlayer['player'+i].pseudo.length){                                       // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)
+                pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('adviseStartGame');     // Envoi à chaque client d'un message individuel lui donnanty le compmte-à-rebours
+            }
+        }
+    }
+    // -------------------------------------------------------------------------
+    // Le Maître du jeu a lancé la partie
     // Le serveur envoie l'ordre à tous les joueurs d'aller capturer leur jeton 
     // et de commencer la collecte des Pils
     // -------------------------------------------------------------------------
-    PlayersServer.prototype.startGame = function(pMyClientPlayer, pSocketIo){
+    PlayersServer.prototype.startGame = function(pSocketIo){
+    console.log('startGame --> playAndEatPils');
+    
         this.elapsedTime = 0;                                                                       // RAZ du chrono
         for (let i=0; i <= this.maxPlayers-1; i++){
             if (this.objectPlayer['player'+i].pseudo.length){                                       // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)
-                pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('playAndEatPils');     // Envoi à chaque client d'un message individuel pour effacer mes pilules
+                pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('playAndEatPils');     // Envoi à chaque client d'un message individuel pour lui dire de jouer
             }
         }
     }
@@ -356,12 +369,14 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
     // RAZ des données du joueur en mémoire
     // -------------------------------------------------------------------------
     PlayersServer.prototype.razPlayerData = function(pClientPlayer){
+        this.objectPlayer[pClientPlayer].webSocketID = null;
         this.objectPlayer[pClientPlayer].pseudo = '';
         this.objectPlayer[pClientPlayer].nbrWonParties = 0;
         this.objectPlayer[pClientPlayer].nbrLostParties = 0;
         this.objectPlayer[pClientPlayer].totalPlayedTime = 0;
         this.objectPlayer[pClientPlayer].totalPoints = 0;
         this.objectPlayer[pClientPlayer].ranking = 0;
+        this.objectPlayer[pClientPlayer].pils = {};
     }
     // -------------------------------------------------------------------------
     // Enregistrement des scores, et du temps de la partie
@@ -401,8 +416,6 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
                                         ranking : this.objectPlayer[pMyClient.monClientPlayer].ranking,
                                     }
                                 });
-
-        this.razPlayerData(pMyClient.monClientPlayer);
     }
     // -------------------------------------------------------------------------
     // Actualise la position du token du joueur sur les autres clients

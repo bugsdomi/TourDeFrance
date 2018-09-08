@@ -6,8 +6,9 @@
 
 function PlayersClient(){    
 // Les propriétés ci-dessous sont modifiables sans aucun problème
-    this.precision = 30;                                // Distance minimum en pixels entre le centre du Jeton et le centre de la Pils pour determiner si elle est mangée (+ grand = +facile)
+    this.precision = 40;                                // Distance minimum en pixels entre le centre du Jeton et le centre de la Pils pour determiner si elle est mangée (+ grand = +facile)
     this. delayToReset = 10;                            // Délai en secondes accordé aux joueurs pour admirer, faire des Screen-Shots, etc..., avant de revenir à l'écran principal
+    this.compteARebours = 5;                            // Constante Compte à rebours en secondes avant le début de la partie
 
 // NE PAS MODIFIER Les propriétés ci-dessous !!!!
     this.currentPlayer = -1;                            // Joueur en train d etre traité sur ce client : CE N EST PAS OBLIGATOIREMENT le joueur de ce client
@@ -25,8 +26,17 @@ function PlayersClient(){
     this.myNumPlayer = -1;                              // Pendant de la variable ci-dessus mais sans le préfixe 'player' 'player3')
     this.distance= -1;                                  // Stocke la distance calculée entre 2 (utilisée lors de la detection de la Pils mangée)
     this.vainqueurTrouve = false;                       // Flag permettant de determiner le vainqueur dès que le 1er joueur a mangé toutes ses pils 
-    this.vAdviseBtn;                                    // Instance du bouton afin de pouvoir simuler son click de n'importe
+
+    this.AdviseLegend = undefined;                      //\
+    this.AdviseWindow = undefined;                      // \
+    this.adviseLi = undefined;                          //      Elements de la fenetre d'avertissement à usages et options multiples
+    this.adviseOL = undefined;                          // /
+    this.adviseBtn = undefined;                         ///
+
     this.rayon = undefined;                             // Taille du rayon du conteneur du jeton
+    this.vCompteARebours;                               // Variable du compte-à-rebours
+    this.refreshCompteARebours;                         // Variable du stockage du 'SetInterval' du compte-à-rebours
+
 
     this.player0 =
     {
@@ -119,59 +129,98 @@ PlayersClient.prototype.checkPseudo = function(pPseudo){
     pPseudo.value = pPseudo.value.trim();
     
     if(!regex.test(pPseudo.value)){
-        this.advise('Veuillez remplir le champ "Pseudo" en respectant le format : '+
+        this.adviseWithButton('Veuillez remplir le champ "Pseudo" en respectant le format : '+
                     'Initiale en Majuscule, suivie de 0 à 11 caractères alphanumériques','Fermer');
         return false;
     } else {
         return true;
     }
 }
+
+// --------------------------------------------------------------
+// Efface la Fenêtre simplifiée de messsage
+// --------------------------------------------------------------
+PlayersClient.prototype.clearAdvise = function(){   
+    this.adviseLegend.parentNode.removeChild(this.adviseLegend);
+    this.adviseWindow.parentNode.removeChild(this.adviseWindow);
+}
+// --------------------------------------------------------------
+// Affiche une Fenêtre simplifiée de messsage
+// --------------------------------------------------------------
+PlayersClient.prototype.displayAdvise = function(pMessage){   
+    this.adviseWindow = window.document.createElement('form');   
+    window.document.body.appendChild(this.adviseWindow);  
+    this.adviseWindow.style.background = 'linear-gradient(0.75turn, rgba(252,141,50), rgba(230,159,42))';
+    this.adviseWindow.style.zIndex = '1000000';
+    this.adviseWindow.style.display = 'block';
+
+    this.adviseLegend = window.document.createElement('legend');   
+    this.adviseWindow.appendChild(this.adviseLegend);  
+    this.adviseLegend.innerHTML = pMessage;
+}
 // --------------------------------------------------------------
 // Fenêtre améliorée de messsage, avec un bouton permettant sa validation 
 // et declenchant une action passée en paramètre
 // --------------------------------------------------------------
-PlayersClient.prototype.advise = function(pMessage, pMessageAction, pAction, pMyPlayer, pWebSocketConnection){   
-    var vAdviseWindow = window.document.createElement('form');   
-    window.document.body.appendChild(vAdviseWindow);  
-    vAdviseWindow.style.background = 'linear-gradient(0.75turn, rgba(252,141,50), rgba(230,159,42))';
-
-    var vAdviseLegend = window.document.createElement('legend');   
-    vAdviseWindow.appendChild(vAdviseLegend);  
-    vAdviseLegend.innerHTML = pMessage;
+PlayersClient.prototype.adviseWithButton = function(pMessage, pMessageAction, pAction, pMyPlayer, pWebSocketConnection){  
+    this.displayAdvise(pMessage)
     
-    var vAdviseOL = window.document.createElement('ol');   
-    vAdviseWindow.appendChild(vAdviseOL);  
+    // var this.dviseWindow = window.document.createElement('form');   
+    // window.document.body.appendChild(this.dviseWindow);  
+    // this.dviseWindow.style.background = 'linear-gradient(0.75turn, rgba(252,141,50), rgba(230,159,42))';
+    // this.dviseWindow.style.zIndex = '1000000';
+    // this.dviseWindow.style.display = 'block';
+
+
+    // var vAdviseLegend = window.document.createElement('legend');   
+    // this.dviseWindow.appendChild(vAdviseLegend);  
+    // vAdviseLegend.innerHTML = pMessage;
     
-    var vAdviseLi = window.document.createElement('li');   
-    vAdviseOL.appendChild(vAdviseLi);  
+    this.adviseOL = window.document.createElement('ol');   
+    this.adviseWindow.appendChild(this.adviseOL);  
     
-    this.vAdviseBtn = window.document.createElement('button');   
-    vAdviseLi.appendChild(this.vAdviseBtn);  
-    this.vAdviseBtn.setAttribute('class', 'cButton');
-    this.vAdviseBtn.setAttribute('type', 'button');
-    this.vAdviseBtn.innerHTML = pMessageAction;
+    this.adviseLi = window.document.createElement('li');   
+    this.adviseOL.appendChild(this.adviseLi);  
+    
+    this.adviseBtn = window.document.createElement('button');   
+    this.adviseLi.appendChild(this.adviseBtn);  
+    this.adviseBtn.setAttribute('class', 'cButton');
+    this.adviseBtn.setAttribute('type', 'button');
+    this.adviseBtn.innerHTML = pMessageAction;
 
-    vAdviseWindow.style.zIndex = '1000000';
-    vAdviseWindow.style.display = 'block';
-
-    this.vAdviseBtn.addEventListener('click', function(){
-        this.vAdviseBtn.parentNode.removeChild(this.vAdviseBtn);
-        vAdviseLi.parentNode.removeChild(vAdviseLi);            // Suppression de la fenêtre d'avertissement du DOM
-        vAdviseOL.parentNode.removeChild(vAdviseOL);
-        vAdviseLegend.parentNode.removeChild(vAdviseLegend);
-        vAdviseWindow.parentNode.removeChild(vAdviseWindow);
-
-        pAction.call(this,pMyPlayer,pWebSocketConnection);     // Lancement de l'action correspondante à celle indiquée sur le bouton de la fenêtre d'avertissement
+    this.adviseBtn.addEventListener('click', function(){
+        this.adviseBtn.parentNode.removeChild(this.adviseBtn);
+        this.adviseLi.parentNode.removeChild(this.adviseLi);            // Suppression de la fenêtre d'avertissement du DOM
+        this.adviseOL.parentNode.removeChild(this.adviseOL);
+        this.clearAdvise();
+        if (pAction){
+            pAction.call(this,pMyPlayer,pWebSocketConnection);     // Lancement de l'action correspondante à celle indiquée sur le bouton de la fenêtre d'avertissement
+        }
     }.bind(this));
 }
 // --------------------------------------------------------------
-// MAJ le temps total passé par le joueur sur toutes ses parties
+// Affiche et décrémente le compte_à_rebours
+// Puis efface la fenêtre, et active la partie
+// --------------------------------------------------------------
+PlayersClient.prototype.playCompteARebours = function(pWebSocketConnection){  
+    this.vCompteARebours--;
+    if (this.vCompteARebours>0){
+        this.adviseLegend.innerHTML = 'Le jeu va démarrer dans '+this.vCompteARebours+' secondes'; 
+    } else {
+        window.clearInterval(this.refreshCompteARebours)
+        this.clearAdvise();
+        pWebSocketConnection.emit('startGame');
+    }
+}
+// --------------------------------------------------------------
+// MAJ l'affichage du temps total passé par le joueur sur toutes ses parties
 // --------------------------------------------------------------
 PlayersClient.prototype.refreshElapsedTime = function(pMyTotalTime){  
     this[pMyTotalTime.monClientPlayer].timerFrame.innerHTML = vToolBox.convertSecsToDaysHoursMinsSecs(pMyTotalTime.monTotalTime);
 }
 // --------------------------------------------------------------
-// MAJ le temps total passé par le joueur sur toutes ses parties
+// Caclule le temps total passé par le joueur sur toutes ses parties
+// Et l'envoie au serveur pour l'afficher sur tous les autres postes
 // --------------------------------------------------------------
 PlayersClient.prototype.addOneSecond = function(pWebSocketConnection){  
     this[this.myClientPlayer].totalPlayedTime++;
@@ -230,6 +279,7 @@ PlayersClient.prototype.playAndEatPils = function(pWebSocketConnection, event){
         top: event.clientY,
     };
 
+    // Vérifie si la souris rentre dans le Control-Panel, et si oui, se détache de son jeton et reprend sa forme de curseur fleché
     if (vMouseCoord.top <= parseInt(this.controlPanel.style.height)){
         this[this.myClientPlayer].tokenCaptured = false;
         document.body.style.cursor = 'default';
@@ -307,7 +357,7 @@ PlayersClient.prototype.selectNextPilsToEat = function(pWebSocketConnection){
         if (!this.vainqueurTrouve){
             this.vainqueurTrouve = true;
             this[this.myClientPlayer].vainqueur = true;
-            this.advise('VICTOIRE !!! Vous avez gagné', 'Terminer', this.restartLogin);
+            this.adviseWithButton('VICTOIRE !!! Vous avez gagné', 'Terminer', this.restartLogin);
             this.endOfParty(pWebSocketConnection)
         }
     }
@@ -361,9 +411,8 @@ PlayersClient.prototype.sendPartyData = function(pWebSocketConnection){
 // -------------------------------------------------------------------------
 // Lancement du jeu
 // -------------------------------------------------------------------------
-PlayersClient.prototype.startGame = function(pMyPlayer, pWebSocketConnection){  
-    window.addEventListener('mousemove', this.playAndEatPils.bind(this, pWebSocketConnection));
-    pWebSocketConnection.emit('startGame',pMyPlayer);
+PlayersClient.prototype.launchGame = function(pMyPlayer, pWebSocketConnection){  
+    pWebSocketConnection.emit('adviseStartGame',pMyPlayer);
 }
 // -------------------------------------------------------------------------
 // Ce timer a pour fonction de sortir les joueurs au bout d'un certain temps
@@ -372,7 +421,7 @@ PlayersClient.prototype.startGame = function(pMyPlayer, pWebSocketConnection){
 // -------------------------------------------------------------------------
 PlayersClient.prototype.timerToExit = function(){   
     setTimeout(function(){
-        this.vAdviseBtn.click();
+        this.adviseBtn.click();
     }.bind(this), this.delayToReset * 1000);
 }
 // -------------------------------------------------------------------------
@@ -533,7 +582,7 @@ PlayersClient.prototype.drawAvatarToken = function(){
     }
 }           
 // -------------------------------------------------------------------------
-// Affichage de la fenetre de la liste et demand au serveurs de la liste 
+// Affichage de la fenetre de la liste et demande au serveurs de la liste 
 // des joueurs
 // -------------------------------------------------------------------------
 PlayersClient.prototype.askPlayersList = function(pOuterBrdrWindowList, pWindowList, pWebSocketConnection){
@@ -548,6 +597,11 @@ PlayersClient.prototype.askPlayersList = function(pOuterBrdrWindowList, pWindowL
 PlayersClient.prototype.displayDisclaimer = function(pOuterBrdrWindowList, pWindowList, pWebSocketConnection){
     pOuterBrdrWindowList.style.display = 'block';
     pWindowList.style.display = 'block';
+    
+    pWindowList.style.fontFamily = 'cursive, serif, sans-serif';
+    pWindowList.style.color = '#6f3c13';
+    pWindowList.style.fontStyle = 'normal';
+    pWindowList.style.fontSize = '1.5em';
 
     var vInnerHTML = 
     '<h1>Avertissement</h1></br>' +
@@ -564,10 +618,10 @@ PlayersClient.prototype.displayDisclaimer = function(pOuterBrdrWindowList, pWind
         '...et tellement d\'autres, parmi les plus grands, qui ont avoué avoir pris des produits durant leur carrière, bien après la fin de celle-ci...</br>' + 
         'Certains en sont même morts, et aujourd\'hui, la 1ère affaire de dopage technologique est apparue avec un vélo électrique utilisé lors d\'une course amateur...</br>' +
         'Il n\'y a pas de limites dans la recherche de la performance assistée, et malheureusement, cela fait de gros dégâts parmi les sportifs "clean", dans l\'opinion publique, et c\'est bien triste pour eux et le sport en général... </br></br>' +
-        'C\'est en pensant à tous ces sportifs "propres", que j\'ai conçu ce petit jeu, sans autre prétention que d\'apporter une note d\'humour décalée et qui gratte un peu, là où ça fait mal... Ca fait souvent du bien...</br></br><hr></br>' +
+        'C\'est en pensant à tous ces sportifs "propres", que j\'ai conçu ce petit jeu, sans autre prétention que d\'apporter une note d\'humour décalée et qui gratte un peu, là où ça fait mal... Ca fait souvent du bien !!!... </br></br><hr></br>' +
 
         '<h1>Pitch du jeu</h1></br>' +
-        'Willy Voet, le soigneur de l\'équipe Festina, trop pressé, a fait tomber sa caisse de produits dopants, et toutes les gélules se sont mélangées en vrac dans la caisse.</br>' +
+        'Willy Pouet, le soigneur de l\'équipe "Crestina", trop pressé, a fait tomber sa caisse de produits dopants, et toutes les gélules se sont mélangées en vrac dans la caisse.</br>' +
         'Les coureurs sont à quelques minutes du départ de la course et doivent <strong>impérativement ET rapidement</strong>, prendre leurs produits dopants qui ont été dosés et étudiés spécifiquement pour chacun d\'entr-eux.</br>' + 
         'Fort heureusement, chacune des gélules du traitement est repérée par une couleur spécifique à chaque coureur, qu\'il pourra donc s\`administrer sans risque d\'erreur.</br></br><hr></br>' +
         '<h1>Règles du jeu</h1></br>' +

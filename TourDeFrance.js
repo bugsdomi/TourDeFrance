@@ -73,31 +73,42 @@ socketIo.on('connection', function(webSocketConnection){                        
                             if (!vGameStarted){                                                              // Si la partie n'est pas déjà lancée
                                 vPlayersServer.searchMasterOfGame(socketIo);
                             }
-                            webSocketConnection.on('startGame',function(pMyPlayer){
-                                vGameStarted = true;
-                                vPlayersServer.elapsedTime = 0;
-                                
-                                refreshElapsedTimeInterval = setInterval(function(){
-                                    vPlayersServer.addOneSecond(socketIo)},1000);
-                                    
-                                vPlayersServer.startGame(pMyPlayer,socketIo);
+
+                            webSocketConnection.on('adviseStartGame',function(){
+                                vPlayersServer.adviseStartGame(socketIo);
                             });
+
+                            webSocketConnection.on('startGame',function(){
+                                if (vCurrentPlayerInSession === vPlayersServer.numPlayerMasterOfGame){             // Seule la session appartenant au maitre du jeu peut activer la partie
+                                    vGameStarted = true;
+                                    vPlayersServer.elapsedTime = 0;
+                                    refreshElapsedTimeInterval = setInterval(function(){
+                                        vPlayersServer.addOneSecond(socketIo)},1000);
+                                    vPlayersServer.startGame(socketIo);
+                                }
+                            });
+
                             webSocketConnection.on('broadcastTokenCoord',function(pMyToken){
                                 vPlayersServer.broadcastTokenCoord(pMyToken, socketIo);
                             });
+
                             webSocketConnection.on('broadcastNextPilsToEat',function(pMyPils){
                                 vPlayersServer.broadcastNextPilsToEat(pMyPils, socketIo);
                             });
+
                             webSocketConnection.on('broadcastEatedPils',function(pMyPils){
                                 vPlayersServer.broadcastEatedPils(pMyPils, socketIo);
                             });
+
                             webSocketConnection.on('broadcastTotalTime',function(vMyTotalTime){
                                 vPlayersServer.broadcastTotalTime(vMyTotalTime, socketIo);
                             });
+
                             webSocketConnection.on('stopGame',function(pMyClient){
                                 clearInterval(refreshElapsedTimeInterval);              // Arrêt du chrono
                                 vPlayersServer.stopGame(pMyClient, socketIo);
                             });
+
                             webSocketConnection.on('sendPartyData',function(pMyClient){
                                 vPlayersServer.recordPartyData(pMyClient);
                             });
@@ -107,23 +118,15 @@ socketIo.on('connection', function(webSocketConnection){                        
             } //    partyFull
         }  //    playerAlreadyInParty
     }); //  playerLoginData
-    
-    
-                
+                        
     webSocketConnection.on('disconnect', function() {
         if (vCurrentPlayerInSession > -1){                                              // S'il s'agit d'un joueur qui était connecté dans une partie
             vPlayersServer.deletePlayerDeck(vCurrentPlayerInSession, socketIo);               // Efface le jeu du joueur et le transmet au client et à tous les joueurs déjà connectés
-            vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].pseudo = '';
-            vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].pils = {};
-            vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].webSocketID = null; // On supprime l'id de connection stocké dans l'objet joueurs
+            vPlayersServer.razPlayerData('player'+vCurrentPlayerInSession);
+
             vPlayersServer.currentPlayer=-1;                                                  // Ré-initialisation du joueur courant
             vPlayersServer.NbrPlayersInParty--;                                               // Décrémentation du nombre de joueurs dans la partie
             vPlayersServer.isItMe = false;                                                    // Flag permettant de savoir si le joueur courant qui va être communiqué aux clients est moi 
-            vPlayersServer.nbrWonParties = 0;                                                 // Nbre de parties gagnées
-            vPlayersServer.nbrLostParties = 0;                                                // Nbre de parties perdues
-            vPlayersServer.totalPlayedTime = 0;                                               // Temps total de jeu
-            vPlayersServer.totalPoints = 0;                                                   // Nbre total de points du joueur
-            vPlayersServer.ranking = 0;                                                       // Classement du joueur en fonction de ses points
 
             if (vPlayersServer.NbrPlayersInParty === 0){                                      // S'il n'y a plus de joueurs encore dans la partie, la partie s'arrête
                 clearInterval(refreshElapsedTimeInterval);
