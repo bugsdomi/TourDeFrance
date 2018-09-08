@@ -163,19 +163,8 @@ PlayersClient.prototype.displayAdvise = function(pMessage){
 // et declenchant une action passée en paramètre
 // --------------------------------------------------------------
 PlayersClient.prototype.adviseWithButton = function(pMessage, pMessageAction, pAction, pMyPlayer, pWebSocketConnection){  
-    this.displayAdvise(pMessage)
-    
-    // var this.dviseWindow = window.document.createElement('form');   
-    // window.document.body.appendChild(this.dviseWindow);  
-    // this.dviseWindow.style.background = 'linear-gradient(0.75turn, rgba(252,141,50), rgba(230,159,42))';
-    // this.dviseWindow.style.zIndex = '1000000';
-    // this.dviseWindow.style.display = 'block';
+    this.displayAdvise(pMessage);
 
-
-    // var vAdviseLegend = window.document.createElement('legend');   
-    // this.dviseWindow.appendChild(vAdviseLegend);  
-    // vAdviseLegend.innerHTML = pMessage;
-    
     this.adviseOL = window.document.createElement('ol');   
     this.adviseWindow.appendChild(this.adviseOL);  
     
@@ -440,8 +429,8 @@ PlayersClient.prototype.drawBtnPlayerListe = function(pOuterBrdrWindowList, pWin
     var vInterEspace = ((vToolBox.screenWidth - (widthCadreJoueur * 4)) / 5);
 
     this.imgBtnPlayerList.style.width = (vInterEspace - 2) - 4 +'px';
-    this.imgBtnPlayerList.style.left = (vToolBox.screenWidth / 2) - (parseInt(this.imgBtnPlayerList.style.width) / 2) + 8 + 'px';
-    this.imgBtnPlayerList.style.top = (this.controlPanel.style.height / 2) + (parseInt(this.imgBtnPlayerList.style.width) / 2) + 8 + 'px';
+    this.imgBtnPlayerList.style.left = (vToolBox.screenWidth / 2) - (parseInt(this.imgBtnPlayerList.style.width) / 2) + 6 + 'px';
+    this.imgBtnPlayerList.style.top = (this.controlPanel.style.height / 2) + (parseInt(this.imgBtnPlayerList.style.width) / 2) + 6 + 'px';
 
     this.imgBtnPlayerList.addEventListener('click', function(){
         this.askPlayersList(pOuterBrdrWindowList, pWindowList, pWebSocketConnection)
