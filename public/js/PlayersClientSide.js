@@ -626,7 +626,7 @@ PlayersClient.prototype.displayDisclaimer = function(pOuterBrdrWindowList, pWind
         'Amusez-vous et prenez autant de plaisir que moi, qui me suis beaucoup amusé également en le créant...</br></br>' + 
         'L\'Auteur...</br></br><hr></br>' +
         '<h1>Règles de calcul des points et du ranking</h1></br>' +
-        'Les points sont caculés selon le barême suivant :</br>' + 
+        'Les points sont calculés selon le barême suivant :</br>' + 
         '1) Chaque participation a 1 partie vaut 10 points</br>' +
         '2) Chaque gélule mangée vaut 1 point</br>' + 
         '3) Chaque victoire vaut 100 points</br></br>' + 
