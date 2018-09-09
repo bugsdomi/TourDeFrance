@@ -604,13 +604,13 @@ PlayersClient.prototype.displayDisclaimer = function(pOuterBrdrWindowList, pWind
         '- Jan Ullrich</br>'+
         '- Alberto Contador</br>'+
     '</ul>'+
-        '...et tellement d\'autres, parmi les plus grands, qui ont avoué avoir pris des produits durant leur carrière, bien après la fin de celle-ci...</br>' + 
+        '...et tellement d\'autres, parmi les plus grands, qui ont avoué avoir pris des produits durant leur carrière, mais bien après la fin de celle-ci...</br>' + 
         'Certains en sont même morts, et aujourd\'hui, la 1ère affaire de dopage technologique est apparue avec un vélo électrique utilisé lors d\'une course amateur...</br>' +
         'Il n\'y a pas de limites dans la recherche de la performance assistée, et malheureusement, cela fait de gros dégâts parmi les sportifs "clean", dans l\'opinion publique, et c\'est bien triste pour eux et le sport en général... </br></br>' +
-        'C\'est en pensant à tous ces sportifs "propres", que j\'ai conçu ce petit jeu, sans autre prétention que d\'apporter une note d\'humour décalée et qui gratte un peu, là où ça fait mal... Ca fait souvent du bien !!!... </br></br><hr></br>' +
+        'C\'est en pensant à tous ces sportifs "clean", que j\'ai conçu ce petit jeu, sans autre prétention que d\'apporter une note d\'humour décalée et qui gratte un peu, là où ça fait mal... Et ça fait souvent du bien finalement !!!... </br></br><hr></br>' +
 
         '<h1>Pitch du jeu</h1></br>' +
-        'Willy Pouet, le soigneur de l\'équipe "Crestina", trop pressé, a fait tomber sa caisse de produits dopants, et toutes les gélules se sont mélangées en vrac dans la caisse.</br>' +
+        'Willy Pouet, le soigneur de l\'équipe "Cretina", trop pressé, a fait tomber sa caisse de produits dopants, et toutes les gélules se sont mélangées en vrac dans la caisse.</br>' +
         'Les coureurs sont à quelques minutes du départ de la course et doivent <strong>impérativement ET rapidement</strong>, prendre leurs produits dopants qui ont été dosés et étudiés spécifiquement pour chacun d\'entr-eux.</br>' + 
         'Fort heureusement, chacune des gélules du traitement est repérée par une couleur spécifique à chaque coureur, qu\'il pourra donc s\`administrer sans risque d\'erreur.</br></br><hr></br>' +
         '<h1>Règles du jeu</h1></br>' +
@@ -623,7 +623,7 @@ PlayersClient.prototype.displayDisclaimer = function(pOuterBrdrWindowList, pWind
         'Vous pouvez suivre votre progression sur le panneau qui concerne votre avatar en aut de l\'écran (Nombre de gélules mangées / Total de gélules, et cumul de temps de jeu).</br></br>' +
         'Vous pouvez accéder à la liste de tous les joueurs ayant participé à ce jeu, soit dans l\'écran principal (bouton "Podium" à gauche) , soit dans l\'écran de jeu, où vous disposez de ce même bouton, mais de taille réduite, au centre du panneau de contrôle, en haut de l\'écran.</br>' + 
         'Vous pouvez quitter cette liste (ainsi que l\'écran que vous êtes en train de lire actuellement) en appuyant sur n\'importe quelle touche du clavier...</br></br></br>' + 
-        'Amusez-vous et prenez autant de plaisir que je me suis amusé à le créer...</br></br>' + 
+        'Amusez-vous et prenez autant de plaisir que moi, qui me suis beaucoup amusé également en le créant...</br></br>' + 
         'L\'Auteur...</br></br><hr></br>' +
         '<h1>Règles de calcul des points et du ranking</h1></br>' +
         'Les points sont caculés selon le barême suivant :</br>' + 
