@@ -51,7 +51,7 @@ socketIo.on('connection', function(webSocketConnection){                        
     let vCurrentPlayerInSession=-1;                                             // No de joueur courant validé dans la partie
     vNbrConnectionsAlive++;                                                     // Nombre de connexions (pas forcément des joueurs dans une partie)
     webSocketConnection.on('askPlayersList',function(){
-        vPlayersServer.askPlayersDataList(socketIo, webSocketConnection.id);
+        vPlayersServer.askPlayersList(socketIo, webSocketConnection.id);
     });
     webSocketConnection.emit('callLoginForm');                                            // Demande au client d'afficher le formulaire de saisie du login
     webSocketConnection.on('playerLoginData',function(playerLoginData){                   // Réception des infos de Login du futur joueur envoyées par le client

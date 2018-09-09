@@ -177,7 +177,7 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
     // et envoi de la liste des joueurs et de leurs données au client 
     // demandeur
     // ------------------------------------------------------------
-    PlayersServer.prototype.askPlayersDataList = function(pSocketIo, pWebSocketConnectionId){
+    PlayersServer.prototype.askPlayersList = function(pSocketIo, pWebSocketConnectionId){
 
         vDBMgr.playerCollection.find().sort({ranking:-1, totalPoints:-1}).toArray(function(error, documents) {
         if (!error) {  
