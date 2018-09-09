@@ -145,7 +145,7 @@ PlayersClient.prototype.clearAdvise = function(){
     this.adviseWindow.parentNode.removeChild(this.adviseWindow);
 }
 // --------------------------------------------------------------
-// Affiche une Fenêtre simplifiée de messsage
+// Affiche une Fenêtre simplifiée de messsage (Sans bouton, ni action associée)
 // --------------------------------------------------------------
 PlayersClient.prototype.displayAdvise = function(pMessage){   
     this.adviseWindow = window.document.createElement('form');   

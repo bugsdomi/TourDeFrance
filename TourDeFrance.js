@@ -53,66 +53,64 @@ socketIo.on('connection', function(webSocketConnection){                        
     webSocketConnection.on('askPlayersList',function(){
         vPlayersServer.askPlayersList(socketIo, webSocketConnection.id);
     });
-    webSocketConnection.emit('callLoginForm');                                            // Demande au client d'afficher le formulaire de saisie du login
-    webSocketConnection.on('playerLoginData',function(playerLoginData){                   // Réception des infos de Login du futur joueur envoyées par le client
+    webSocketConnection.emit('callLoginForm');                                             // Demande au client d'afficher le formulaire de saisie du login
+    webSocketConnection.on('playerLoginData',function(playerLoginData){                    // Réception des infos de Login du futur joueur envoyées par le client
         if (!vPlayersServer.playerAlreadyInParty(playerLoginData, webSocketConnection)){   // Vérification que le joueur n'est pas déjà dans la partie dans une autre session
             if (!vPlayersServer.partyFull(webSocketConnection)){                           // Vérification de place encore disponible dans la partie
                 if (!vPlayersServer.partyStarted(webSocketConnection, vGameStarted)){      // Vérification que la partie n'a pas déja commencé
                     if (vPlayersServer.selectSlotInParty(playerLoginData)){                // Recherche et selection du 1er slot libre dans la partie
                         vCurrentPlayerInSession = vPlayersServer.currentPlayer;            // Le candidat-joueur passe au statut de joueur courant validé
-                        if (vPlayersServer.reachPlayerInDatabase(playerLoginData)){        // Recherche du joueur dans la base et éventuellement ajout de celui-ci
-                            console.log('--------------------------------------------------------------------------------------------------------------------')
-                            console.log('Connection : Nombre de connectés : ', vNbrConnectionsAlive,'--- Nombre de joueurs en jeu : ',vPlayersServer.NbrPlayersInParty,'--- N° du joueur dans la partie : ',vCurrentPlayerInSession);
-                            
-                            // Alimentation de la structure de data coté serveur recensant les données de tous les joueurs admis :
-                            //  Stockage de l'Id du WebSocket pour communiquer individuellement
-                            vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].webSocketID = webSocketConnection.id; 
-                            
-                            // Génère le jeu du joueur et le transmet au client et à tous les joueurs déjà connectés dans la partie
-                            vPlayersServer.genPlayerDeck(vCurrentPlayerInSession, webSocketConnection, socketIo);   
-                            if (!vGameStarted){                                                              // Si la partie n'est pas déjà lancée
-                                vPlayersServer.searchMasterOfGame(socketIo);
+                        console.log('--------------------------------------------------------------------------------------------------------------------')
+                        console.log('Connection : Nombre de connectés : ', vNbrConnectionsAlive,'--- Nombre de joueurs en jeu : ',vPlayersServer.NbrPlayersInParty,'--- N° du joueur dans la partie : ',vCurrentPlayerInSession);
+                        
+                        // Alimentation de la structure de data coté serveur recensant les données de tous les joueurs admis :
+                        //  Stockage de l'Id du WebSocket pour communiquer individuellement
+                        vPlayersServer.objectPlayer['player'+vCurrentPlayerInSession].webSocketID = webSocketConnection.id; 
+                        
+                        // Génère le jeu du joueur et le transmet au client et à tous les joueurs déjà connectés dans la partie
+                        vPlayersServer.genPlayerDeck(vCurrentPlayerInSession, webSocketConnection, socketIo);   
+                        if (!vGameStarted){                                                              // Si la partie n'est pas déjà lancée
+                            vPlayersServer.searchMasterOfGame(socketIo);
+                        }
+
+                        webSocketConnection.on('adviseStartGame',function(){
+                            vPlayersServer.adviseStartGame(socketIo);
+                        });
+
+                        webSocketConnection.on('startGame',function(){
+                            if (vCurrentPlayerInSession === vPlayersServer.numPlayerMasterOfGame){             // Seule la session appartenant au maitre du jeu peut activer la partie
+                                vGameStarted = true;
+                                vPlayersServer.elapsedTime = 0;
+                                refreshElapsedTimeInterval = setInterval(function(){
+                                    vPlayersServer.addOneSecond(socketIo)},1000);
+                                vPlayersServer.startGame(socketIo);
                             }
+                        });
 
-                            webSocketConnection.on('adviseStartGame',function(){
-                                vPlayersServer.adviseStartGame(socketIo);
-                            });
+                        webSocketConnection.on('broadcastTokenCoord',function(pMyToken){
+                            vPlayersServer.broadcastTokenCoord(pMyToken, socketIo);
+                        });
 
-                            webSocketConnection.on('startGame',function(){
-                                if (vCurrentPlayerInSession === vPlayersServer.numPlayerMasterOfGame){             // Seule la session appartenant au maitre du jeu peut activer la partie
-                                    vGameStarted = true;
-                                    vPlayersServer.elapsedTime = 0;
-                                    refreshElapsedTimeInterval = setInterval(function(){
-                                        vPlayersServer.addOneSecond(socketIo)},1000);
-                                    vPlayersServer.startGame(socketIo);
-                                }
-                            });
+                        webSocketConnection.on('broadcastNextPilsToEat',function(pMyPils){
+                            vPlayersServer.broadcastNextPilsToEat(pMyPils, socketIo);
+                        });
 
-                            webSocketConnection.on('broadcastTokenCoord',function(pMyToken){
-                                vPlayersServer.broadcastTokenCoord(pMyToken, socketIo);
-                            });
+                        webSocketConnection.on('broadcastEatedPils',function(pMyPils){
+                            vPlayersServer.broadcastEatedPils(pMyPils, socketIo);
+                        });
 
-                            webSocketConnection.on('broadcastNextPilsToEat',function(pMyPils){
-                                vPlayersServer.broadcastNextPilsToEat(pMyPils, socketIo);
-                            });
+                        webSocketConnection.on('broadcastTotalTime',function(vMyTotalTime){
+                            vPlayersServer.broadcastTotalTime(vMyTotalTime, socketIo);
+                        });
 
-                            webSocketConnection.on('broadcastEatedPils',function(pMyPils){
-                                vPlayersServer.broadcastEatedPils(pMyPils, socketIo);
-                            });
+                        webSocketConnection.on('stopGame',function(pMyClient){
+                            clearInterval(refreshElapsedTimeInterval);              // Arrêt du chrono
+                            vPlayersServer.stopGame(pMyClient, socketIo);
+                        });
 
-                            webSocketConnection.on('broadcastTotalTime',function(vMyTotalTime){
-                                vPlayersServer.broadcastTotalTime(vMyTotalTime, socketIo);
-                            });
-
-                            webSocketConnection.on('stopGame',function(pMyClient){
-                                clearInterval(refreshElapsedTimeInterval);              // Arrêt du chrono
-                                vPlayersServer.stopGame(pMyClient, socketIo);
-                            });
-
-                            webSocketConnection.on('sendPartyData',function(pMyClient){
-                                vPlayersServer.recordPartyData(pMyClient);
-                            });
-                        }; //   reachPlayerInDatabase
+                        webSocketConnection.on('sendPartyData',function(pMyClient){
+                            vPlayersServer.recordPartyData(pMyClient);
+                        });
                     } //    selectSlotInParty
                 } //    partyStarted
             } //    partyFull

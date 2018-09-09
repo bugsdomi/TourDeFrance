@@ -148,12 +148,8 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
     // - Soit il existe dans la BDD
     // - Soit il n'existe pas dans la DB, auquel cas, on le crée
     // ------------------------------------------------------------
-    PlayersServer.prototype.reachPlayerInDatabase = function(pPlayerLoginData){
-        vDBMgr.playerCollection.find(                                          // Recherche du profil du joueur
-        {
-            pseudo: pPlayerLoginData.pseudo,
-        }
-        ).toArray((error, documents) => {
+    PlayersServer.prototype.reachPlayerInDatabase = function(pPseudo, pSocketIo){
+        vDBMgr.playerCollection.find( { pseudo: pPseudo, }).toArray((error, documents) => {
             if (error) {
                 console.log('Erreur d\'accès à la collection',error);
                 return false;
@@ -161,16 +157,18 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
                 if (!documents.length){
                     this.addPlayerInDatabase(pPlayerLoginData);                 // Si le profil du joueur n'a pas été trouvé (pas de documents), on l'ajoute à la BDD
                 } else {
-                    this.objectPlayer['player'+this.currentPlayer].pseudo = documents[0].pseudo;                                        
-                    this.objectPlayer['player'+this.currentPlayer].nbrWonParties = documents[0].nbrWonParties;
-                    this.objectPlayer['player'+this.currentPlayer].nbrLostParties =  documents[0].nbrLostParties;                                       
-                    this.objectPlayer['player'+this.currentPlayer].totalPlayedTime = documents[0].totalPlayedTime;                                      
-                    this.objectPlayer['player'+this.currentPlayer].totalPoints = documents[0].totalPoints;
-                    this.objectPlayer['player'+this.currentPlayer].ranking = documents[0].ranking;                                      
+                    this.objectPlayer['player'+ this.currentPlayer].pseudo = documents[0].pseudo;                                        
+                    this.objectPlayer['player'+ this.currentPlayer].nbrWonParties = documents[0].nbrWonParties;
+                    this.objectPlayer['player'+ this.currentPlayer].nbrLostParties =  documents[0].nbrLostParties;                                       
+                    this.objectPlayer['player'+ this.currentPlayer].totalPlayedTime = documents[0].totalPlayedTime;                                      
+                    this.objectPlayer['player'+ this.currentPlayer].totalPoints = documents[0].totalPoints;
+                    this.objectPlayer['player'+ this.currentPlayer].ranking = documents[0].ranking;    
+
+                    this.displayMyPlayerOnEachPlayer(pSocketIo);
                 }
+                return true
             }
         });
-        return true
     }
     // ------------------------------------------------------------
     // Récupération des infos de tous les joueurs connus dans la BDD
@@ -234,15 +232,13 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
         }
         return found;
     }
+
     // ------------------------------------------------------------
-    // Nous avons tout ce qu'il faut pour que le client affiche la 
-    // surface de jeu et le deck des pilules du nouveau joueur
-    // Donc, demande à chaque client des joueurs déjà admis dans la partie 
-    // d'afficher le deck du joueur qui vient d'être admis à jouer
+    // Affichage sur les autres joueurs de mon jeu (Pils, avatar, score...) 
+    // M'affiche sur les autres joueurs deja en jeu et moi-meme, 
+    // MAIS n'affiche pas les autres joueurs sur moi-meme
     // ------------------------------------------------------------
-    PlayersServer.prototype.sendDataPlayerToClient = function(pWebSocketConnection, pSocketIo){
-        pWebSocketConnection.emit('drawGameBackground');            // Affichage du plateau de jeu, de la barre des scores, et des joueurs
-        
+    PlayersServer.prototype.displayMyPlayerOnEachPlayer = function(pSocketIo){
         for (let i=0; i <= this.maxPlayers-1; i++){
             if (this.objectPlayer['player'+i].pseudo.length){       // Pour chaque joueur UNIQUEMENT DANS la partie (dont moi) (et non ceux qui sont simplement connectés) ...
                 if (i === this.currentPlayer){
@@ -251,12 +247,34 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
                     this.isItMe = false;
                 }
                 pSocketIo.to(this.objectPlayer['player'+i].webSocketID).emit('drawPils',this);     // ... Envoi à son client d'un message individuel pour afficher mes pilules
-                
+            }
+        }
+    }
+    // ------------------------------------------------------------
+    // Nous avons tout ce qu'il faut pour que le client affiche la 
+    // surface de jeu et le deck des pilules du nouveau joueur
+    // Donc, demande à chaque client des joueurs déjà admis dans la partie 
+    // d'afficher le deck du joueur qui vient d'être admis à jouer
+    // ------------------------------------------------------------
+    PlayersServer.prototype.displayMeInGame = function(pWebSocketConnection, pSocketIo){
+        pWebSocketConnection.emit('drawGameBackground');            // Affichage du plateau de jeu, de la barre des scores, et des joueurs
+
+        // Recherche du joueur dans la base (et récupération des infos) et éventuellement ajout de celui-ci s'il n'existe pas déjà
+        this.reachPlayerInDatabase(this.objectPlayer['player'+this.currentPlayer].pseudo, pSocketIo)        
+
+        for (let i=0; i <= this.maxPlayers-1; i++){
+            if (this.objectPlayer['player'+i].pseudo.length){       // Pour chaque joueur UNIQUEMENT DANS la partie (dont moi) (et non ceux qui sont simplement connectés) ...
+                if (i === this.currentPlayer){
+                    this.isItMe = true;                             // Set du flag qui indique que la session en cours est la mienne, et servira de reference pour chaque client
+                } else {
+                    this.isItMe = false;
+                }
+
                 let saveCurrentPlayer = this.currentPlayer;
-                if (i !== saveCurrentPlayer){                        // Je ne reafiiche pas sur mon propre client mes pils car elles sont déjà affichées
+                if (i !== saveCurrentPlayer){                        // Je ne reaffiche pas sur mon propre client mes pils car elles sont déjà affichées
                     this.currentPlayer = i;  
                     this.isItMe = false;
-                    pWebSocketConnection.emit('drawPils',this);      // Affichage sur mon client des pils de tous les autres joueurs déjà dans la partie      
+                    pWebSocketConnection.emit('drawPils',this);      // Affichage sur mon client les données de tous les autres joueurs déjà dans la partie (Pils, avatr, score...)
                 }
                 this.currentPlayer = saveCurrentPlayer;
             }
@@ -271,7 +289,7 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
         pWebSocketConnection.emit('askScreenSize');             // Demande la taille d'écran du client pour pouvoir calculer la positions des Pils de façon                                                                                 adaptée
         pWebSocketConnection.on('receiveScreenSize',vDataScreenSize =>{
             this.initPilsDeck(pCurrentPlayerInSession, vDataScreenSize);        // Génération du deck de pilules (position, couleur, orientation)
-            this.sendDataPlayerToClient(pWebSocketConnection, pSocketIo);       // Envoi du deck à tous les clients dejà en jeu
+            this.displayMeInGame(pWebSocketConnection, pSocketIo);       // Envoi du deck à tous les clients dejà en jeu
         });
     }
     // -------------------------------------------------------------------------
@@ -340,8 +358,6 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
     // et de commencer la collecte des Pils
     // -------------------------------------------------------------------------
     PlayersServer.prototype.startGame = function(pSocketIo){
-    console.log('startGame --> playAndEatPils');
-    
         this.elapsedTime = 0;                                                                       // RAZ du chrono
         for (let i=0; i <= this.maxPlayers-1; i++){
             if (this.objectPlayer['player'+i].pseudo.length){                                       // Pour chaque joueur UNIQUEMENT DANS la partie (et non ceux qui sont simplement connectés)
