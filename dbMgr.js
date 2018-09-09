@@ -38,7 +38,8 @@ module.exports = function DBMgr(){
         // mongoDB.MongoClient.connect("mongodb://localhost:27017/TourDeFrance", { useNewUrlParser: true }, (err,db) => {
         mongoDB.MongoClient.connect("mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance", { useNewUrlParser: true }, (err,db) => {
             if (err) {
-                console.log('Base de données inaccessible, le jeu ne peut pas se lancer',err);
+                console.log('Base de données inaccessible, le jeu ne peut pas se lancer');
+                console.log('Description de l\'erreur : ',err);
                 throw "Base de données inaccessible, le jeu ne peut pas se lancer, contacter l\'Administrateur système";
             } else {  
                 this.myDB = db;                                                                         // Conservation de l'instance de BDD
