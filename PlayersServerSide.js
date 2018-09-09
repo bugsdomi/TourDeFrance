@@ -142,6 +142,14 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
             ranking : 0,                        // Classement du joueur en fonction de ses points
         }
         vDBMgr.playerCollection.insert(playerRecord);
+
+        this.objectPlayer['player'+ this.currentPlayer].pseudo = playerRecord.pseudo;                                        
+        this.objectPlayer['player'+ this.currentPlayer].nbrWonParties = playerRecord.nbrWonParties;
+        this.objectPlayer['player'+ this.currentPlayer].nbrLostParties =  playerRecord.nbrLostParties;                                       
+        this.objectPlayer['player'+ this.currentPlayer].totalPlayedTime = playerRecord.totalPlayedTime;                                      
+        this.objectPlayer['player'+ this.currentPlayer].totalPoints = playerRecord.totalPoints;
+        this.objectPlayer['player'+ this.currentPlayer].ranking = playerRecord.ranking;    
+
     }
     // ------------------------------------------------------------
     // Vérification des données du joueur (Pseudo) :
@@ -163,9 +171,8 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
                     this.objectPlayer['player'+ this.currentPlayer].totalPlayedTime = documents[0].totalPlayedTime;                                      
                     this.objectPlayer['player'+ this.currentPlayer].totalPoints = documents[0].totalPoints;
                     this.objectPlayer['player'+ this.currentPlayer].ranking = documents[0].ranking;    
-
-                    this.displayMyPlayerOnEachPlayer(pSocketIo);
                 }
+                this.displayMyPlayerOnEachPlayer(pSocketIo);
                 return true
             }
         });
