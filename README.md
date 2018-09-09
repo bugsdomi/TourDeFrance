@@ -7,6 +7,20 @@ Auteur :
 - Dominique Hourdequin
 - DIWJS08 - Développeur FullStack Javascript
 
+
+------------------------------------------------------------------------------------------------------------------------------------------
+Pour lancer le jeu à partir de son hébergement : 
+------------------------------------------------------------------------------------------------------------------------------------------
+https://tourdefranceonheroku.herokuapp.com/
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+Si vous voulez l'installer localement sur votre poste 
+------------------------------------------------------------------------------------------------------------------------------------------
+
 1) Procédure d'installation
 
 a)PRE-REQUIS : 
@@ -18,14 +32,13 @@ a)PRE-REQUIS :
 b) Arborescence
 - Voici un répertoire "xxx/TourDeFrance"  // Les "xxx" symbolisent votre arborescence de répertoires personnelle
 - En dessous de ce répertoire, créer l'arborescence suivante :
-    |_ data             // Stockage de la base de données "TourDeFrance"
-    |   |_              // BDD "TourDeFrance" et sa collection "Joueurs"
     |_ public           // Répertoire dédié aux ressources utilisées par les clients
         |_ fonts        // Stockage des fontes éventuelles
         |_ images       // Stockage des images
         |_ css          // Stockage des ressources, en particulier des fichiers ".css"
         |_ js           // Stockage des scripts Javascripts utilisés par les clients
     |_ views            // Stockage des templates "Pug"
+
 
 - Lancer les commandes suivantes depuis le répertoire "TourDeFrance" :
     npm init -y                     // Va créer le projet "TourDeFrance" et l'arborescence technique (node_modules...), 
@@ -34,15 +47,12 @@ b) Arborescence
 
 
 2) Procédure de lancement du jeu
-    a)  Lancer la base de données
-        - Se positionner sur le répertoire "xxx/mongodb/server/bin
-        - lancer mongod --dbpath="xxx/TourDeFrance/data"
+    a) La base de données est hébergée chez "mLab"
 
-
-    b: Pour créer la BDD "TourDeFrance" : 
+    b) Pour utiliser / créer la BDD "TourDeFrance" : 
             use TourDeFrance
 
-    c: Ou autre possibilité: on crée la collection "joueurs" 
+    c) Ou autre possibilité: on crée la collection "joueurs" 
             db.createCollection("joueurs");
 
         La base de données "TourDeFrance" a déjà été créée et a actuellemnt une collection "joueurs".
