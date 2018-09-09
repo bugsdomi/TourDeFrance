@@ -610,7 +610,7 @@ PlayersClient.prototype.displayDisclaimer = function(pOuterBrdrWindowList, pWind
         'C\'est en pensant à tous ces sportifs "clean", que j\'ai conçu ce petit jeu, sans autre prétention que d\'apporter une note d\'humour décalée et qui gratte un peu, là où ça fait mal... Et ça fait souvent du bien finalement !!!... </br></br><hr></br>' +
 
         '<h1>Pitch du jeu</h1></br>' +
-        'Willy Pouet, le soigneur de l\'équipe "Cretina", trop pressé, a fait tomber sa caisse de produits dopants, et toutes les gélules se sont mélangées en vrac dans la caisse.</br>' +
+        'Willy Pouett, le soigneur de l\'équipe "Cretina", trop pressé, a fait tomber sa caisse de produits dopants, et toutes les gélules se sont mélangées en vrac dans la caisse.</br>' +
         'Les coureurs sont à quelques minutes du départ de la course et doivent <strong>impérativement ET rapidement</strong>, prendre leurs produits dopants qui ont été dosés et étudiés spécifiquement pour chacun d\'entr-eux.</br>' + 
         'Fort heureusement, chacune des gélules du traitement est repérée par une couleur spécifique à chaque coureur, qu\'il pourra donc s\`administrer sans risque d\'erreur.</br></br><hr></br>' +
         '<h1>Règles du jeu</h1></br>' +
