@@ -102,7 +102,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
         var vPlayerBackground = window.document.createElement('img');   
         window.document.body.appendChild(vPlayerBackground);     
-        vPlayerBackground.setAttribute('src', 'static/images/FondEcran.png');
+        vPlayerBackground.setAttribute('src', 'static/images/FondEcran.jpg');
         vPlayerBackground.style.height = '100%';
         vPlayerBackground.style.width = '100%';
 

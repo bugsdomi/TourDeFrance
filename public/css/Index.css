@@ -82,7 +82,7 @@
 
 body {
     background-color: white;
-    background: url("../images/Logo-du-tour-de-france-velo1920.png") no-repeat center center fixed;
+    background: url("../images/Logo-du-tour-de-france-velo1920.jpg") no-repeat center center fixed;
     background-size: cover;
     overflow: hidden;
     margin: 0;
@@ -266,7 +266,7 @@ form input:invalid{
 }
 
 .controlPanel{
-    background-image: url("../images/991527628-1024x1024.png") ;
+    background-image: url("../images/991527628-1024x1024.jpg") ;
     position: absolute;
     height: 174px;
     width: 99.5%;

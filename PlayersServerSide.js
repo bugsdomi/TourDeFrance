@@ -50,7 +50,7 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
             ranking : 0,                                        // Classement du joueur en fonction de ses points
             couleur : 'blue',                                   // Couleur dominante du joueur
             fichier : "static/images/pil-blue-white-1.png",     // Image des pilules associées au joueur
-            avatar : "static/images/Armstrong.png",             // Avatar du joueur
+            avatar : "static/images/Armstrong.jpg",             // Avatar du joueur
             pils: {},                                           // Jeu de pilules affectées au joueur            
         },
         player1 :
@@ -64,7 +64,7 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
             ranking : 0,                                        // Classement du joueur en fonction de ses points
             couleur : 'red',
             fichier : "static/images/pil-red-white-1.png",
-            avatar : "static/images/Virenque.png",                           
+            avatar : "static/images/Virenque.jpg",                           
             pils: {},
         },
         player2 : 
@@ -78,7 +78,7 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
             ranking : 0,                                        // Classement du joueur en fonction de ses points
             couleur : 'yellow',
             fichier : "static/images/pil-yellow-white-1.png",
-            avatar : "static/images/Jalabert.png",                           
+            avatar : "static/images/Jalabert.jpg",                           
             pils: {},
         },
         player3 : 
@@ -92,7 +92,7 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
             ranking : 0,                                        // Classement du joueur en fonction de ses points
             couleur : 'green',
             fichier : "static/images/pil-green-white-1.png",
-            avatar : "static/images/Contador.png",                           
+            avatar : "static/images/Contador.jpg",                           
             pils: {},
         }
         // cyan, green, orange, redBlack, red, violet, black, white, yellow             // peut-être pour un futur usage
