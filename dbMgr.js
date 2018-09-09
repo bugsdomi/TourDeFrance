@@ -20,10 +20,8 @@
 const mongoDB = require('mongodb');
 
 module.exports = function DBMgr(){
-    this.myDB=10;                           // Instance de la base de données
-    this.playerCollection=100;               // Sélectionne la collection que l'on veut utiliser
-    // this.myDB;                           // Instance de la base de données
-    // this.playerCollection;               // Sélectionne la collection que l'on veut utiliser
+    this.myDB;                           // Instance de la base de données
+    this.playerCollection;               // Sélectionne la collection que l'on veut utiliser
     
     // -------------------------------------------------------------------------
     // On se connecte à mongoDB, on vérifie qu elle est lancée et que la BDD 
