@@ -20,10 +20,10 @@
 const mongoDB = require('mongodb');
 
 module.exports = function DBMgr(){
-    // this.myDB=10;                           // Instance de la base de données
-    // this.playerCollection=100;               // Sélectionne la collection que l'on veut utiliser
-    this.myDB;                           // Instance de la base de données
-    this.playerCollection;               // Sélectionne la collection que l'on veut utiliser
+    this.myDB=10;                           // Instance de la base de données
+    this.playerCollection=100;               // Sélectionne la collection que l'on veut utiliser
+    // this.myDB;                           // Instance de la base de données
+    // this.playerCollection;               // Sélectionne la collection que l'on veut utiliser
     
     // -------------------------------------------------------------------------
     // On se connecte à mongoDB, on vérifie qu elle est lancée et que la BDD 
@@ -43,7 +43,7 @@ module.exports = function DBMgr(){
                 throw "Base de données inaccessible, le jeu ne peut pas se lancer, contacter l\'Administrateur système";
             } else {  
                 this.myDB = db;                                                                         // Conservation de l'instance de BDD
-                this.playerCollection = this.myDB.db('TourDeFrance').collection('joueurs');             // On sélectionne la collection des joueurs
+                this.playerCollection = this.myDB.db('tourdefrance').collection('joueurs');             // On sélectionne la collection des joueurs
                 console.log('La BDD "TourDeFrance" - Collection "Joueurs" est bien lancée et tourne');  // Message de notification BDD OK à destination de l'Admin 
             }
         });

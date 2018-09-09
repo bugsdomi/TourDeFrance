@@ -258,7 +258,7 @@ window.addEventListener('DOMContentLoaded', function(){
     var vPalmares = document.getElementById('idPalmares');
     var vGameRules = document.getElementById('idGameRules');
     
-    window.addEventListener('keydown',vPlayersClient.gereAppuiTouche.bind(vPlayersClient,vOuterBrdrWindowList));   
+    window.addEventListener('keydown',vPlayersClient.gereAppuiTouche.bind(vPlayersClient,vOuterBrdrWindowList,vWindowList));   
     
     vBtnImgBtnListMainScreen.addEventListener('click', function(){
         vPlayersClient.askPlayersList(vOuterBrdrWindowList, vWindowList, webSocketConnection);

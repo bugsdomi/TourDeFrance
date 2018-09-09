@@ -182,7 +182,9 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
         vDBMgr.playerCollection.find().sort({ranking:-1, totalPoints:-1}).toArray(function(error, documents) {
         if (!error) {  
             pSocketIo.to(pWebSocketConnectionId).emit('displayPlayersList',documents);     // Envoi au client demandeur de la liste des joueurs
-            };  
+        } else {
+            console.log('Erreur d\'accès à la BDD - Erreur : ',error);
+        };  
         });
     }
     // ------------------------------------------------------------

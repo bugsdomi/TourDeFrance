@@ -683,6 +683,8 @@ PlayersClient.prototype.displayPlayersList = function(pWindowList, pDocuments){
 // --------------------------------------------------------------
 // Guette l'appui d'une touche quelconque pour fermer la fenêtre
 // --------------------------------------------------------------
-PlayersClient.prototype.gereAppuiTouche = function(pOuterBrdrWindowList, event){
+PlayersClient.prototype.gereAppuiTouche = function(pOuterBrdrWindowList, pWindowList, event){
+    pWindowList.innerHTML = '';
     pOuterBrdrWindowList.style.display = 'none';
 }
+
