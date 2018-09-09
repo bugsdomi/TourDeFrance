@@ -131,10 +131,10 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
     // Ajout des données du joueur (Pseudo, score, TimeStamp
     // (au format brut) dans la BDD
     // ------------------------------------------------------------
-    PlayersServer.prototype.addPlayerInDatabase = function(pPlayerLoginData){
+    PlayersServer.prototype.addPlayerInDatabase = function(pPseudo){
         let playerRecord = 
         {
-            pseudo: pPlayerLoginData.pseudo,
+            pseudo: pPseudo,
             nbrWonParties : 0,                  // Nbre de parties gagnées
             nbrLostParties : 0,                 // Nbre de parties perdues
             totalPlayedTime : 0,                // temps total de jeu
@@ -155,7 +155,7 @@ module.exports = function PlayersServer(){  // Fonction constructeur exportée
                 return false;
             } else {
                 if (!documents.length){
-                    this.addPlayerInDatabase(pPlayerLoginData);                 // Si le profil du joueur n'a pas été trouvé (pas de documents), on l'ajoute à la BDD
+                    this.addPlayerInDatabase(pPseudo);                 // Si le profil du joueur n'a pas été trouvé (pas de documents), on l'ajoute à la BDD
                 } else {
                     this.objectPlayer['player'+ this.currentPlayer].pseudo = documents[0].pseudo;                                        
                     this.objectPlayer['player'+ this.currentPlayer].nbrWonParties = documents[0].nbrWonParties;
