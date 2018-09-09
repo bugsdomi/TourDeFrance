@@ -20,8 +20,10 @@
 const mongoDB = require('mongodb');
 
 module.exports = function DBMgr(){
-    this.myDB=10;                           // Instance de la base de données
-    this.playerCollection=100;               // Sélectionne la collection que l'on veut utiliser
+    // this.myDB=10;                           // Instance de la base de données
+    // this.playerCollection=100;               // Sélectionne la collection que l'on veut utiliser
+    this.myDB;                           // Instance de la base de données
+    this.playerCollection;               // Sélectionne la collection que l'on veut utiliser
     
     // -------------------------------------------------------------------------
     // On se connecte à mongoDB, on vérifie qu elle est lancée et que la BDD 
@@ -33,9 +35,10 @@ module.exports = function DBMgr(){
     // -------------------------------------------------------------------------
     DBMgr.prototype.checkDBConnect = function(){
         // mongoDB.MongoClient.connect("mongodb://localhost:27017/TourDeFrance", (err,db) => {
-        mongoDB.MongoClient.connect("mongodb://localhost:27017/TourDeFrance", { useNewUrlParser: true }, (err,db) => {
+        // mongoDB.MongoClient.connect("mongodb://localhost:27017/TourDeFrance", { useNewUrlParser: true }, (err,db) => {
+        mongoDB.MongoClient.connect("mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance", { useNewUrlParser: true }, (err,db) => {
             if (err) {
-                console.log('Base de données inaccessible, le jeu ne peut pas se lancer');
+                console.log('Base de données inaccessible, le jeu ne peut pas se lancer',err);
                 throw "Base de données inaccessible, le jeu ne peut pas se lancer, contacter l\'Administrateur système";
             } else {  
                 this.myDB = db;                                                                         // Conservation de l'instance de BDD
