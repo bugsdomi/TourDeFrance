@@ -33,7 +33,7 @@ app.get('/', function(req, res){
 // -------------------------------------------------------------------------
 // Création du serveur et lancement du listener
 // -------------------------------------------------------------------------
-const server = app.listen(3000, function() {
+const server = app.listen(process.env.PORT || 3000, function() {
     const addressHote = server.address().address;
     const portEcoute = server.address().port
     console.log('Écoute du serveur http://%s:%s',addressHote,portEcoute);
