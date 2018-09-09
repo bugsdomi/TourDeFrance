@@ -7,10 +7,111 @@ mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance
 
 SET MONGOLAB_URI="mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance"
 
-
-
+------------------------------------------------------------------------------------
+Export / Import
+------------------------------------------------------------------------------------
 
 mongoexport  -d TourDeFrance -c joueurs  -o ExportTourDeFrance.json
-
 mongoimport -h ds151012.mlab.com:51012 -d tourdefrance -c joueurs -u TourDeFranceAdmin -p TDFAdmin*001 --file ExportTourDeFrance.json
+
+
+------------------------------------------------------------------------------------
+Deploiement sur Heroku
+------------------------------------------------------------------------------------
+
+
+Windows PowerShell
+Copyright (C) Microsoft Corporation. Tous droits réservés.
+
+PS D:\Cours Web\Cours\IFOCOP\Cours\DH\Ateliers\02 - Atelier Back\TourDeFrance> heroku login
+heroku: Enter your login credentials
+Email [bugsdomi@neuf.fr]:
+Password: *********
+Logged in as bugsdomi@neuf.fr
+
+
+PS D:\Cours Web\Cours\IFOCOP\Cours\DH\Ateliers\02 - Atelier Back\TourDeFrance> git init
+Reinitialized existing Git repository in D:/Cours Web/Cours/IFOCOP/Cours/DH/Ateliers/02 - Atelier Back/TourDeFrance/.git/
+
+
+PS D:\Cours Web\Cours\IFOCOP\Cours\DH\Ateliers\02 - Atelier Back\TourDeFrance> git add .
+
+
+PS D:\Cours Web\Cours\IFOCOP\Cours\DH\Ateliers\02 - Atelier Back\TourDeFrance> git commit -m "Deploy on Heroku - Ajout process.env.PORT"
+On branch master
+Your branch is up-to-date with 'origin/master'.
+nothing to commit, working directory clean
+PS D:\Cours Web\Cours\IFOCOP\Cours\DH\Ateliers\02 - Atelier Back\TourDeFrance> git push heroku master
+Counting objects: 3, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 340 bytes | 0 bytes/s, done.
+Total 3 (delta 2), reused 0 (delta 0)
+remote: Compressing source files... done.
+remote: Building source:
+remote:
+remote: -----> Node.js app detected
+remote:
+remote: -----> Creating runtime environment
+remote:
+remote:        NPM_CONFIG_LOGLEVEL=error
+remote:        NODE_VERBOSE=false
+remote:        NODE_ENV=production
+remote:        NODE_MODULES_CACHE=true
+remote:
+remote: -----> Installing binaries
+remote:        engines.node (package.json):  unspecified
+remote:        engines.npm (package.json):   unspecified (use default)
+remote:
+remote:        Resolving node version 8.x...
+remote:        Downloading and installing node 8.11.4...
+remote:        Using default npm version: 5.6.0
+remote:
+remote: -----> Restoring cache
+remote:        - node_modules
+remote:
+remote: -----> Building dependencies
+remote:        Installing node modules (package.json + package-lock)
+remote:        up to date in 1.08s
+remote:
+remote: -----> Caching build
+remote:        - node_modules
+remote:
+remote: -----> Pruning devDependencies
+remote:        Skipping because npm 5.6.0 sometimes fails when running 'npm prune' due to a known issue
+remote:        https://github.com/npm/npm/issues/19356
+remote:
+remote:        You can silence this warning by updating to at least npm 5.7.1 in your package.json
+remote:        https://devcenter.heroku.com/articles/nodejs-support#specifying-an-npm-version
+remote:
+remote: -----> Build succeeded!
+remote: -----> Discovering process types
+remote:        Procfile declares types -> web
+remote:
+remote: -----> Compressing...
+remote:        Done: 30.1M
+remote: -----> Launching...
+remote:        Released v4
+remote:        https://tourdefranceonheroku.herokuapp.com/ deployed to Heroku
+remote:
+remote: Verifying deploy... done.
+To https://git.heroku.com/tourdefranceonheroku.git
+   8e66307..45f3455  master -> master
+PS D:\Cours Web\Cours\IFOCOP\Cours\DH\Ateliers\02 - Atelier Back\TourDeFrance>
+
+heroku open
+
+
+
+
+
+
+
+
+https://tourdefranceonheroku.herokuapp.com/ 
+
+https://git.heroku.com/tourdefranceonheroku.git
+
+
+
 
