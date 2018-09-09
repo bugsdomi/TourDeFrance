@@ -1,0 +1,16 @@
+
+To connect using the mongo shell:
+mongo ds151012.mlab.com:51012/tourdefrance -u <dbuser> -p <dbpassword> 
+
+To connect using a driver via the standard MongoDB URI (what's this?): 
+mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance
+
+SET MONGOLAB_URI="mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance"
+
+
+
+
+mongoexport  -d TourDeFrance -c joueurs  -o ExportTourDeFrance.json
+
+mongoimport -h ds151012.mlab.com:51012 -d tourdefrance -c joueurs -u TourDeFranceAdmin -p TDFAdmin*001 --file ExportTourDeFrance.json
+
