@@ -620,7 +620,7 @@ PlayersClient.prototype.displayDisclaimer = function(pOuterBrdrWindowList, pWind
         'Le 1er joueur disponible est le "Maître du Jeu", c\'est lui qui va déclencher la partie.</br>'+
         'Votre Avatar, représenté par un jeton de couleur avec la photo de votre avatar, va s\'accrocher à votre souris et la suivre...</br>' + 
         'Vous n\'avez qu\'à la diriger sur la gélule de votre couleur, qui tourne pour la manger, puis la suivante, après une petite phase ou elle va changer de dimension alternativement quelque secondes, puis se mettre à tourner en attendant d\'être mangée à son tour, et ainsi de suite, jusqu\'à ce que le stock soit épuisé.</br></br>' +
-        'Vous pouvez suivre votre progression sur le panneau qui concerne votre avatar en aut de l\'écran (Nombre de gélules mangées / Total de gélules, et cumul de temps de jeu).</br></br>' +
+        'Vous pouvez suivre votre progression sur le panneau qui concerne votre avatar en haut de l\'écran (Nombre de gélules mangées / Total de gélules, et cumul de temps de jeu).</br></br>' +
         'Vous pouvez accéder à la liste de tous les joueurs ayant participé à ce jeu, soit dans l\'écran principal (bouton "Podium" à gauche) , soit dans l\'écran de jeu, où vous disposez de ce même bouton, mais de taille réduite, au centre du panneau de contrôle, en haut de l\'écran.</br>' + 
         'Vous pouvez quitter cette liste (ainsi que l\'écran que vous êtes en train de lire actuellement) en appuyant sur n\'importe quelle touche du clavier...</br></br></br>' + 
         'Amusez-vous et prenez autant de plaisir que moi, qui me suis beaucoup amusé également en le créant...</br></br>' + 
