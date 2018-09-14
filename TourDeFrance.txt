@@ -1,4 +1,49 @@
 
+Hébergement de la base chez mLab :
+1) Créer un compte mLab
+
+    - User / Pwd
+
+2) Définir un plan d'hébergement :
+    - SandBox
+    - Europe
+    - Amazon (AWS)
+
+    DB name : "tourdefrance"
+    MongoDB : 3.6.7 (MMAPv1)
+
+3) Créer un user de la BDD :
+    - TourDeFranceAdmin / TDFAdmin*001
+
+4) Noter les elements de connexion fournis par mLab (dans le "Home" de la BDD créée)
+    - a) To connect using a driver via the standard MongoDB URI : 
+
+            mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance
+
+        C'est cette chaîne de connexion fournie par mLab qu'il faut intégrer dans l'instruction "connect" dans l'aplication
+        exemple :
+        mongoDB.MongoClient.connect("mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance", { useNewUrlParser: true }, (err,db) => {
+
+
+    - b) To connect using the mongo shell :
+        mongo ds151012.mlab.com:51012/tourdefrance -u <dbuser> -p <dbpassword> 
+
+
+    - c) SET MONGOLAB_URI="mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance"
+
+
+
+
+4) Exporter la BDD locale :
+    - mongoexport  -d TourDeFrance -c joueurs  -o ExportTourDeFrance.json
+
+
+
+5) Importer la BDD dans mLab
+mongoimport -h ds151012.mlab.com:51012 -d tourdefrance -c joueurs -u TourDeFranceAdmin -p TDFAdmin*001 --file ExportTourDeFrance.json
+
+
+
 To connect using the mongo shell:
 mongo ds151012.mlab.com:51012/tourdefrance -u <dbuser> -p <dbpassword> 
 
@@ -7,12 +52,6 @@ mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance
 
 SET MONGOLAB_URI="mongodb://TourDeFranceAdmin:TDFAdmin*001@ds151012.mlab.com:51012/tourdefrance"
 
-------------------------------------------------------------------------------------
-Export / Import
-------------------------------------------------------------------------------------
-
-mongoexport  -d TourDeFrance -c joueurs  -o ExportTourDeFrance.json
-mongoimport -h ds151012.mlab.com:51012 -d tourdefrance -c joueurs -u TourDeFranceAdmin -p TDFAdmin*001 --file ExportTourDeFrance.json
 
 
 ------------------------------------------------------------------------------------

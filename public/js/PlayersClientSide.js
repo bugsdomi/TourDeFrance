@@ -631,7 +631,7 @@ PlayersClient.prototype.displayDisclaimer = function(pOuterBrdrWindowList, pWind
         '2) Chaque gélule mangée vaut 1 point</br>' + 
         '3) Chaque victoire vaut 100 points</br></br>' + 
         'Ceci donne nombre de points brut (TPB) qui est pondéré par le temps et le nombres de gélules mangées :</br>' +
-        'Le nombre TOTAl de points (NTP) est calculé selon la méthode suivante :</br>' +
+        'Le nombre TOTAL de points (NTP) est calculé selon la méthode suivante :</br>' +
         'NTP = NTP + (TPB + (Temps de la dernière partie / Nbre de gélules mangées)) --> Total de points pondérés (TPP), qui vient s\'ajouter à vos points déjà enregistrés lors de précédentes parties</br></br>' +
         'Le ranking est calculé selon la méthode suivante :</br>' + 
         'Ranking = Nbre total de points / Nbre de parties jouées</br></br>' +
