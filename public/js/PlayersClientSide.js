@@ -208,7 +208,7 @@ PlayersClient.prototype.refreshElapsedTime = function(pMyTotalTime){
     this[pMyTotalTime.monClientPlayer].timerFrame.innerHTML = vToolBox.convertSecsToDaysHoursMinsSecs(pMyTotalTime.monTotalTime);
 }
 // --------------------------------------------------------------
-// Caclule le temps total passé par le joueur sur toutes ses parties
+// Calcule le temps total passé par le joueur sur toutes ses parties
 // Et l'envoie au serveur pour l'afficher sur tous les autres postes
 // --------------------------------------------------------------
 PlayersClient.prototype.addOneSecond = function(pWebSocketConnection){  
@@ -316,7 +316,7 @@ PlayersClient.prototype.showNextPilsToEat = function(pMyPils){
     this[pMyPils.monClientPlayer].pils[pMyPils.maPils].addEventListener('animationend', this.switchToSecondAnimation.bind(this,pMyPils));
 }
 // -------------------------------------------------------------------------
-// Sélectionne au haserd une Pils qui n'a pas été mangée, et demande au 
+// Sélectionne au hasaard une Pils qui n'a pas été mangée, et demande au 
 // serveur de la mettre en evidence sur tous les écrans
 // -------------------------------------------------------------------------
 PlayersClient.prototype.selectNextPilsToEat = function(pWebSocketConnection){

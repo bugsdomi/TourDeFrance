@@ -57,7 +57,7 @@ window.addEventListener('DOMContentLoaded', function(){
         vPlayersClient.adviseWithButton('Vous êtes le Maître de la partie et avez le privilège de la lancer','Démarrer la partie',vPlayersClient.launchGame, pMyPlayer, webSocketConnection);
     });
     // -------------------------------------------------------------------------
-    // On previent le joueur que le jeu va demartrer dans n secondes
+    // On previent le joueur que le jeu va demarrer dans n secondes
     // -------------------------------------------------------------------------
     webSocketConnection.on('adviseStartGame', function(){
         vPlayersClient.vCompteARebours = vPlayersClient.compteARebours;
@@ -68,7 +68,7 @@ window.addEventListener('DOMContentLoaded', function(){
         },1000);
     });
     // -------------------------------------------------------------------------
-    // On notifie au joueur qu'il est une gros Looser et qu'iol ferait meix d'aller 
+    // On notifie au joueur qu'il est une gros Looser et qu'il ferait mieux d'aller 
     // se cacher sous une plaque d'égout
     // -------------------------------------------------------------------------
     webSocketConnection.on('youLost', function(){
